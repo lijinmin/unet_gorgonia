@@ -2,6 +2,7 @@ package unet
 
 import (
 	G "gorgonia.org/gorgonia"
+	"gorgonia.org/tensor"
 )
 
 type Unet struct {
@@ -31,6 +32,10 @@ type doubleConv struct {
 
 // 批量归一化
 type batchNorm struct {
+	scale    *G.Node // 可学习参数 缩放
+	bias     *G.Node // 可学习参数 偏移
+	momentum float64 //
+	epsilon  float64 //
 }
 
 // 下采样参数
@@ -41,7 +46,7 @@ type maxPool2D struct {
 	dilation   int // 控制窗口内元素的间距
 }
 
-func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool) *Unet {
+func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor.Dtype) *Unet {
 	if n_channels == 0 {
 		n_channels = 3
 	}
@@ -55,7 +60,22 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool) *Unet {
 		n_classes:  n_classes,
 		bilinear:   bilinear,
 		inc: inc{
-			doubleConv: doubleConv{},
+			doubleConv: doubleConv{
+				conv1: G.NewTensor(g, dt, 4, G.WithShape(64, 3, 3, 3), G.WithName("inc_doubleConv_conv1"), G.WithInit(G.GlorotN(1.0))), // output_channels=64,input_channels=3
+				conv2: G.NewTensor(g, dt, 4, G.WithShape(128, 64, 3, 3), G.WithName("inc_doubleConv_conv2"), G.WithInit(G.GlorotN(1.0))),
+				batchNorm1: batchNorm{
+					scale:    G.NewTensor(g, dt, 1, G.WithShape(64), G.WithName("inc_doubleConv_batchNorm1_scale"), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
+					bias:     G.NewTensor(g, dt, 1, G.WithShape(64), G.WithName("inc_doubleConv_batchNorm1_bias"), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
+					momentum: 0.1,
+					epsilon:  1e-5,
+				},
+				batchNorm2: batchNorm{
+					scale:    G.NewTensor(g, dt, 1, G.WithShape(128), G.WithName("inc_doubleConv_batchNorm2_scale"), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
+					bias:     G.NewTensor(g, dt, 1, G.WithShape(128), G.WithName("inc_doubleConv_batchNorm2_bias"), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
+					momentum: 0.1,
+					epsilon:  1e-5,
+				},
+			},
 		},
 	}
 }
