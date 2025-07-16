@@ -116,10 +116,21 @@ func (n *inc) forward(x *G.Node) (*G.Node, error) {
 	return retVal, err
 }
 
+func (d *down) forward(x *G.Node) (*G.Node, error) {
+	retVal, err := G.MaxPool2D(x, tensor.Shape{d.maxPool2D.kernelSize, d.maxPool2D.kernelSize}, []int{0, 0}, []int{d.maxPool2D.stride, d.maxPool2D.stride})
+	if err != nil {
+		return retVal, err
+	}
+	retVal1, err := DoubleConv(retVal, d.doubleConv)
+	return retVal1, err
+}
+
 func (n *Unet) Forward(x *G.Node) error {
 	retVal1, err := n.inc.forward(x)
 	if err != nil {
 		return err
 	}
+
+	n.down1.forward(retVal1)
 	return nil
 }
