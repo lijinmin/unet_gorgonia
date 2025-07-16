@@ -11,17 +11,23 @@ type Unet struct {
 	n_channels                 int
 	n_classes                  int
 	bilinear                   bool
-	down1, down2, down3, down4 struct {
-		doubleConv doubleConv
-	}
-	up1, up2, up3, up4, outc *G.Node
-	inc                      *inc
+	down1, down2, down3, down4 *down
+	up1, up2, up3, up4, outc   *G.Node
+	inc                        *inc
 }
 type up struct {
 }
-type down struct{}
 type inc struct {
 	doubleConv *doubleConv
+}
+type down struct {
+	doubleConv *doubleConv
+	maxPool2D  struct {
+		kernelSize int
+		stride     int
+		padding    int
+		dilation   int
+	}
 }
 
 type doubleConv struct {
@@ -65,6 +71,22 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor
 		inc: &inc{
 			doubleConv: newDoubleConv(g, dt, n_channels, 64, 64, "inc"),
 		},
+		down1: newDown(g, dt, 64, 128, 128, "down1"),
+		down2: newDown(g, dt, 128, 256, 256, "down2"),
+		down3: newDown(g, dt, 256, 512, 512, "down3"),
+		down4: newDown(g, dt, 512, 1024, 1024, "down4"),
+	}
+}
+
+func newDown(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputChannels int, label string) *down {
+	return &down{
+		doubleConv: newDoubleConv(g, dt, inputChannels, midChannels, outputChannels, label),
+		maxPool2D: struct {
+			kernelSize int
+			stride     int
+			padding    int
+			dilation   int
+		}{kernelSize: 2, stride: 2, padding: 0, dilation: 1},
 	}
 }
 
