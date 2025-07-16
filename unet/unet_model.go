@@ -89,12 +89,15 @@ func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, 
 		},
 	}
 }
-func (n *inc) forward() {
-
+func (n *inc) forward(x *G.Node) (*G.Node, error) {
+	retVal, err := DoubleConv(x, n.doubleConv)
+	return retVal, err
 }
 
 func (n *Unet) Forward(x *G.Node) error {
-
-	n.inc
+	retVal1, err := n.inc.forward(x)
+	if err != nil {
+		return err
+	}
 	return nil
 }

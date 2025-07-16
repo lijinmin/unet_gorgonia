@@ -6,12 +6,12 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func DoubleConv(x *G.Node, inc *doubleConv) (*G.Node, error) {
-	retVal1, err := G.Conv2d(x, inc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
+func DoubleConv(x *G.Node, dc *doubleConv) (*G.Node, error) {
+	retVal1, err := G.Conv2d(x, dc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
 	if err != nil {
 		errors.Wrap(err, "DoubleConv 1 Convolution failed")
 	}
-	retVal2, _, err := BatchNorm(retVal1, inc.batchNorm1)
+	retVal2, _, err := BatchNorm(retVal1, dc.batchNorm1)
 	if err != nil {
 		return retVal2, err
 	}
@@ -20,11 +20,11 @@ func DoubleConv(x *G.Node, inc *doubleConv) (*G.Node, error) {
 		return retVal3, err
 	}
 
-	retVal4, err := G.Conv2d(retVal3, inc.conv2, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
+	retVal4, err := G.Conv2d(retVal3, dc.conv2, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
 	if err != nil {
 		return retVal4, err
 	}
-	retVal5, _, err := BatchNorm(retVal4, inc.batchNorm2)
+	retVal5, _, err := BatchNorm(retVal4, dc.batchNorm2)
 	if err != nil {
 		return retVal5, err
 	}
