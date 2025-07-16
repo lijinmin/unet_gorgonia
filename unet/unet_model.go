@@ -89,7 +89,12 @@ func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, 
 		},
 	}
 }
+func (n *inc) forward() {
+
+}
 
 func (n *Unet) Forward(x *G.Node) error {
+
+	n.inc
 	return nil
 }
