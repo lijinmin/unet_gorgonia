@@ -131,6 +131,26 @@ func (n *Unet) Forward(x *G.Node) error {
 		return err
 	}
 
-	n.down1.forward(retVal1)
+	retVal2, err := n.down1.forward(retVal1)
+	if err != nil {
+		return err
+	}
+
+	retVal3, err := n.down2.forward(retVal2)
+	if err != nil {
+		return err
+	}
+
+	retVal4, err := n.down3.forward(retVal3)
+	if err != nil {
+		return err
+	}
+
+	retVal5, err := n.down4.forward(retVal4)
+	if err != nil {
+		return err
+	}
+
+	_ = retVal5
 	return nil
 }
