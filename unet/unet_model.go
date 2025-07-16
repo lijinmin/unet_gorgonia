@@ -15,28 +15,30 @@ type Unet struct {
 		doubleConv doubleConv
 	}
 	up1, up2, up3, up4, outc *G.Node
-	inc                      inc
+	inc                      *inc
 }
 type up struct {
 }
 type down struct{}
 type inc struct {
-	doubleConv doubleConv
+	doubleConv *doubleConv
 }
 
 type doubleConv struct {
 	conv1      *G.Node
 	conv2      *G.Node
-	batchNorm1 batchNorm
-	batchNorm2 batchNorm
+	batchNorm1 *batchNorm
+	batchNorm2 *batchNorm
 }
 
 // 批量归一化
 type batchNorm struct {
-	scale    *G.Node // 可学习参数 缩放
-	bias     *G.Node // 可学习参数 偏移
-	momentum float64 //
-	epsilon  float64 //
+	scale                        *G.Node // 可学习参数 缩放
+	bias                         *G.Node // 可学习参数 偏移
+	momentum                     float64 //
+	epsilon                      float64 //
+	op                           *G.BatchNormOp
+	runningMean, runningVariance tensor.Tensor
 }
 
 // 下采样参数
@@ -60,26 +62,26 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor
 		n_channels: n_channels,
 		n_classes:  n_classes,
 		bilinear:   bilinear,
-		inc: inc{
+		inc: &inc{
 			doubleConv: newDoubleConv(g, dt, n_channels, 64, 64, "inc"),
 		},
 	}
 }
 
-func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputChannels int, label string) doubleConv {
+func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputChannels int, label string) *doubleConv {
 	if midChannels == 0 {
 		midChannels = outputChannels
 	}
-	return doubleConv{
+	return &doubleConv{
 		conv1: G.NewTensor(g, dt, 4, G.WithShape(midChannels, inputChannels, 3, 3), G.WithName(fmt.Sprintf("%s_doubleConv_conv1", label)), G.WithInit(G.GlorotN(1.0))), // output_channels，input_channels=
 		conv2: G.NewTensor(g, dt, 4, G.WithShape(outputChannels, midChannels, 3, 3), G.WithName(fmt.Sprintf("%s_doubleConv_conv2", label)), G.WithInit(G.GlorotN(1.0))),
-		batchNorm1: batchNorm{
+		batchNorm1: &batchNorm{
 			scale:    G.NewTensor(g, dt, 4, G.WithShape(1, midChannels, 1, 1), G.WithName(fmt.Sprintf("%s_doubleConv_batchNorm1_scale", label)), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
 			bias:     G.NewTensor(g, dt, 4, G.WithShape(1, midChannels, 1, 1), G.WithName(fmt.Sprintf("%s_doubleConv_batchNorm1_bias", label)), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
 			momentum: 0.1,
 			epsilon:  1e-5,
 		},
-		batchNorm2: batchNorm{
+		batchNorm2: &batchNorm{
 			scale:    G.NewTensor(g, dt, 4, G.WithShape(1, outputChannels, 1, 1), G.WithName(fmt.Sprintf("%s_doubleConv_batchNorm2_scale", label)), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
 			bias:     G.NewTensor(g, dt, 4, G.WithShape(1, outputChannels, 1, 1), G.WithName(fmt.Sprintf("%s_doubleConv_batchNorm2_bias", label)), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
 			momentum: 0.1,                                                                                                                                                  //对小数据集或动态数据：用较小的 momentum（如 0.1）;对大数据集或稳定数据：用较大的 momentum（如 0.9）
@@ -88,6 +90,6 @@ func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, 
 	}
 }
 
-func (n *Unet) forward(x *G.Node) error {
+func (n *Unet) Forward(x *G.Node) error {
 	return nil
 }

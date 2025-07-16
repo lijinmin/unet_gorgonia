@@ -6,20 +6,18 @@ import (
 	"gorgonia.org/tensor"
 )
 
-func DoubleConv(x *G.Node, inc *doubleConv) (n *G.Node, err error) {
-	n, err = G.Conv2d(x, inc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
-	G.BatchNorm()
-	G.Rectify()
-	G.BatchNormOp{}.SetStats()
-	g := G.NewGraph()
-	//G.EvalMode()
-	//	G.TrainModeOp()
-	// 训练模式（关键选项）
-
-	G.norm
-	if err != nil { /* 处理错误 */
+func DoubleConv(x *G.Node, inc *doubleConv) (retVal *G.Node, err error) {
+	retVal, err = G.Conv2d(x, inc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
+	if err != nil {
+		errors.Wrap(err, "DoubleConv 1 Convolution failed")
 	}
-	return n, errors.Wrap(err, "Layer 0 Convolution failed")
+	retVal, op, err := BatchNorm(retVal, inc.batchNorm1)
+	return retVal, errors.Wrap(err, "Layer 0 Convolution failed")
+}
+
+func BatchNorm(x *G.Node, n batchNorm) (*G.Node, *G.BatchNormOp, error) {
+	retVal, _, _, op, err := G.BatchNorm(x, n.scale, n.bias, n.momentum, n.epsilon)
+	return retVal, op, err
 }
 
 func Down() {
