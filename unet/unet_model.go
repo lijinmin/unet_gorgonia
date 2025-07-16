@@ -64,15 +64,15 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor
 				conv1: G.NewTensor(g, dt, 4, G.WithShape(64, 3, 3, 3), G.WithName("inc_doubleConv_conv1"), G.WithInit(G.GlorotN(1.0))), // output_channels=64,input_channels=3
 				conv2: G.NewTensor(g, dt, 4, G.WithShape(128, 64, 3, 3), G.WithName("inc_doubleConv_conv2"), G.WithInit(G.GlorotN(1.0))),
 				batchNorm1: batchNorm{
-					scale:    G.NewTensor(g, dt, 1, G.WithShape(64), G.WithName("inc_doubleConv_batchNorm1_scale"), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
-					bias:     G.NewTensor(g, dt, 1, G.WithShape(64), G.WithName("inc_doubleConv_batchNorm1_bias"), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
+					scale:    G.NewTensor(g, dt, 4, G.WithShape(1, 64, 1, 1), G.WithName("inc_doubleConv_batchNorm1_scale"), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
+					bias:     G.NewTensor(g, dt, 4, G.WithShape(1, 64, 1, 1), G.WithName("inc_doubleConv_batchNorm1_bias"), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
 					momentum: 0.1,
 					epsilon:  1e-5,
 				},
 				batchNorm2: batchNorm{
-					scale:    G.NewTensor(g, dt, 1, G.WithShape(128), G.WithName("inc_doubleConv_batchNorm2_scale"), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
-					bias:     G.NewTensor(g, dt, 1, G.WithShape(128), G.WithName("inc_doubleConv_batchNorm2_bias"), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
-					momentum: 0.1,
+					scale:    G.NewTensor(g, dt, 4, G.WithShape(1, 128, 1, 1), G.WithName("inc_doubleConv_batchNorm2_scale"), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
+					bias:     G.NewTensor(g, dt, 4, G.WithShape(1, 128, 1, 1), G.WithName("inc_doubleConv_batchNorm2_bias"), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
+					momentum: 0.1,                                                                                                                    //对小数据集或动态数据：用较小的 momentum（如 0.1）;对大数据集或稳定数据：用较大的 momentum（如 0.9）
 					epsilon:  1e-5,
 				},
 			},
