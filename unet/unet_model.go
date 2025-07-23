@@ -12,10 +12,13 @@ type Unet struct {
 	n_classes                  int
 	bilinear                   bool
 	down1, down2, down3, down4 *down
-	up1, up2, up3, up4, outc   *G.Node
+	up1, up2, up3, up4         *up
+	outc                       *G.Node
 	inc                        *inc
 }
 type up struct {
+	upsample2DScale int
+	doubleConv      *doubleConv
 }
 type inc struct {
 	doubleConv *doubleConv
@@ -75,6 +78,10 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor
 		down2: newDown(g, dt, 128, 256, 256, "down2"),
 		down3: newDown(g, dt, 256, 512, 512, "down3"),
 		down4: newDown(g, dt, 512, 1024, 1024, "down4"),
+		up1:   newUp(g, dt, 1024, 512, 512, 2, "up1"),
+		up2:   newUp(g, dt, 512, 256, 256, 2, "up2"),
+		up3:   newUp(g, dt, 256, 128, 128, 2, "up3"),
+		up4:   newUp(g, dt, 128, 64, 64, 2, "up4"),
 	}
 }
 
@@ -87,6 +94,13 @@ func newDown(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, output
 			padding    int
 			dilation   int
 		}{kernelSize: 2, stride: 2, padding: 0, dilation: 1},
+	}
+}
+
+func newUp(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputChannels, scale int, label string) *up {
+	return &up{
+		upsample2DScale: scale,
+		doubleConv:      newDoubleConv(g, dt, inputChannels, midChannels, outputChannels, label),
 	}
 }
 
@@ -123,6 +137,27 @@ func (d *down) forward(x *G.Node) (*G.Node, error) {
 	}
 	retVal1, err := DoubleConv(retVal, d.doubleConv)
 	return retVal1, err
+}
+
+func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
+	retVal1, err := G.Upsample2D(x1, 2)
+	if err != nil {
+		return retVal1, err
+	}
+	diffY := x2.Shape()[2] - retVal1.Shape()[2]
+	diffX := x2.Shape()[3] - retVal1.Shape()[3]
+	retVal2, err := G.Pad(retVal1, []int{diffY / 2, diffY - diffY/2, diffX / 2, diffX - diffX/2})
+	if err != nil {
+		return nil, err
+	}
+	retVal3, err := G.Concat(1, x2, retVal2)
+	if err != nil {
+		return nil, err
+	}
+
+	retVal4, err := DoubleConv(retVal3, u.doubleConv)
+	return retVal4, err
+
 }
 
 func (n *Unet) Forward(x *G.Node) error {

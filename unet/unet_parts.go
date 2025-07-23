@@ -46,3 +46,7 @@ func BatchNorm(x *G.Node, n *batchNorm) (*G.Node, *G.BatchNormOp, error) {
 func Down() {
 
 }
+
+func upsample2D_0() {
+
+}

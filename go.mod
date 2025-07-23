@@ -2,9 +2,12 @@ module unet_gorgonia
 
 go 1.23.1
 
+replace gorgonia.org/gorgonia v0.9.18 => github.com/lijinmin/gorgonia v0.0.2
+
 require (
 	github.com/pkg/errors v0.9.1
 	gorgonia.org/gorgonia v0.9.18
+	gorgonia.org/tensor v0.9.24
 )
 
 require (
@@ -18,13 +21,12 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353 // indirect
 	github.com/xtgo/set v1.0.0 // indirect
-	go4.org/unsafe/assume-no-moving-gc v0.0.0-20211027215541-db492cf91b37 // indirect
+	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gorgonia.org/cu v0.9.4 // indirect
 	gorgonia.org/dawson v1.2.0 // indirect
-	gorgonia.org/tensor v0.9.23 // indirect
 	gorgonia.org/vecf32 v0.9.0 // indirect
 	gorgonia.org/vecf64 v0.9.0 // indirect
 )
