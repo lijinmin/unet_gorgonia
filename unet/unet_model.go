@@ -13,7 +13,7 @@ type Unet struct {
 	bilinear                   bool
 	down1, down2, down3, down4 *down
 	up1, up2, up3, up4         *up
-	outc                       *G.Node
+	outc                       *doubleConv
 	inc                        *inc
 }
 type up struct {
@@ -82,6 +82,7 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor
 		up2:   newUp(g, dt, 512, 256, 256, 2, "up2"),
 		up3:   newUp(g, dt, 256, 128, 128, 2, "up3"),
 		up4:   newUp(g, dt, 128, 64, 64, 2, "up4"),
+		outc:  newDoubleConv(g, dt, 64, n_classes, n_classes, "outc"),
 	}
 }
 
@@ -160,32 +161,53 @@ func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 
 }
 
-func (n *Unet) Forward(x *G.Node) error {
+func (n *Unet) Forward(x *G.Node) (*G.Node, error) {
 	retVal1, err := n.inc.forward(x)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	retVal2, err := n.down1.forward(retVal1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	retVal3, err := n.down2.forward(retVal2)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	retVal4, err := n.down3.forward(retVal3)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	retVal5, err := n.down4.forward(retVal4)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_ = retVal5
-	return nil
+	retVal6, err := n.up1.forward(retVal5, retVal4)
+	if err != nil {
+		return nil, err
+	}
+
+	retVal7, err := n.up2.forward(retVal6, retVal3)
+	if err != nil {
+		return nil, err
+	}
+
+	retVal8, err := n.up3.forward(retVal7, retVal2)
+	if err != nil {
+		return nil, err
+	}
+
+	retVal9, err := n.up4.forward(retVal8, retVal1)
+	if err != nil {
+		return nil, err
+	}
+
+	retVal10, err := DoubleConv(retVal9, n.outc)
+
+	return retVal10, err
 }

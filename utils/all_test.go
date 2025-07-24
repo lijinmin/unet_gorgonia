@@ -33,6 +33,38 @@ func TestPad(t *testing.T) {
 		vm.Reset()
 	}
 }
+
+func TestConCat(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	xVal := tensor.New(tensor.WithShape(1, 1, 4, 4), tensor.WithBacking(xData)) // batch channel height width
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
+
+	yData := []float64{16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1}
+	yVal := tensor.New(tensor.WithShape(1, 1, 4, 4), tensor.WithBacking(yData)) // batch channel height width
+	y := G.NewTensor(g, tensor.Float64, 4, G.WithValue(yVal), G.WithName("y"))
+
+	t.Log(3/2, 1/2)
+	z, err := G.Concat(1, y, x)
+	if err != nil {
+		t.Log(err)
+	}
+	t.Log(z.Shape())
+	t.Log(x.Value())
+	vm := G.NewTapeMachine(g)
+	defer vm.Close()
+	for i := 0; i < 1; i++ {
+		if err := vm.RunAll(); err != nil {
+			t.Fatal(err)
+		}
+
+		//xData = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+		//xVal = tensor.New(tensor.WithShape(3, 3), tensor.WithBacking(xData))
+		//G.Let(x, xVal)
+		t.Log(z.Value(), z.Shape())
+		vm.Reset()
+	}
+}
 func TestMaxPool2D(t *testing.T) {
 	g := G.NewGraph()
 	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
