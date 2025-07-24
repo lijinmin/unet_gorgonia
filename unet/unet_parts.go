@@ -35,6 +35,7 @@ func DoubleConv(x *G.Node, dc *doubleConv) (*G.Node, error) {
 	return retVal6, err
 }
 
+// 归一化 加快训练
 func BatchNorm(x *G.Node, n *batchNorm) (*G.Node, *G.BatchNormOp, error) {
 	retVal, _, _, op, err := G.BatchNorm(x, n.scale, n.bias, n.momentum, n.epsilon)
 	if err != nil {
