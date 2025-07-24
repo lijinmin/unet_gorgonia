@@ -23,6 +23,28 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	mask := G.NewTensor(g, dt, 4, G.WithName("mask"))
+
+	//获取损失函数
+	out2, err := G.SoftMax(out, 1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	cost1, err := G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))))))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err = G.Grad(cost, n.Learnables()...); err != nil {
+		log.Fatal(err)
+	}
+
+	prog, locMap, _ := G.Compile(g)
+	//log.Printf("%v", prog)
+
+	vm := G.NewTapeMachine(g, G.WithPrecompiled(prog, locMap), G.BindDualValues(m.learnables()...))
+	solver := G.NewRMSPropSolver(G.WithBatchSize(float64(bs)))
+	defer vm.Close()
 
 	batches := numExamples / bs
 	log.Debugf("Batches %d", batches)
@@ -35,6 +57,8 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 		bar.Start()
 
 		for i := 0; i < batches; i++ {
+			solver.Step(G.NodesToValueGrads(n.Learnables()))
+			vm.Reset()
 			bar.Increment()
 		}
 	}

@@ -16,6 +16,11 @@ type Unet struct {
 	outc                       *doubleConv
 	inc                        *inc
 }
+
+func (u Unet) Learnables() G.Nodes {
+	return G.Nodes{}
+}
+
 type up struct {
 	upsample2DScale int
 	filter          *G.Node
