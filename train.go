@@ -30,12 +30,14 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cost1, err := G.Mean(G.Must(G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))))))))
+	cost1, err := G.Mean(G.Must(G.Neg(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))))))
 	if err != nil {
 		log.Fatal(err)
 	}
+	cost2 := diceLoss(g, dt, out2, mask)
+	totalCost := G.Must(G.Add(cost1, cost2))
 
-	if _, err = G.Grad(cost1, n.Learnables()...); err != nil {
+	if _, err = G.Grad(totalCost, n.Learnables()...); err != nil {
 		log.Fatal(err)
 	}
 
@@ -62,4 +64,17 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 			bar.Increment()
 		}
 	}
+}
+
+func diceLoss(g *G.ExprGraph, dt tensor.Dtype, input, target *G.Node) *G.Node {
+	size := input.Shape()[0]
+	epsilon := G.NewTensor(g, dt, 2, G.WithShape(1, size), G.WithName("epsilon"), G.WithInit(G.ValuesOf(1e-6)))
+	a := G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3))
+	b := G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3))))
+	dice := G.Must(G.Mean(G.Must(G.HadamardDiv(G.Must(G.Add(a, epsilon)), G.Must(G.Add(b, epsilon))))))
+
+	one := G.NewTensor(g, dt, 1, G.WithName("1"), G.WithInit(G.ValuesOf(1)))
+
+	loss := G.Must(G.Add(one, G.Must(G.Neg(dice))))
+	return loss
 }
