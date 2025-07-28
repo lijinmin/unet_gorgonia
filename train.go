@@ -30,19 +30,19 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cost1, err := G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))))))
+	cost1, err := G.Mean(G.Must(G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))))))))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if _, err = G.Grad(cost, n.Learnables()...); err != nil {
+	if _, err = G.Grad(cost1, n.Learnables()...); err != nil {
 		log.Fatal(err)
 	}
 
 	prog, locMap, _ := G.Compile(g)
 	//log.Printf("%v", prog)
 
-	vm := G.NewTapeMachine(g, G.WithPrecompiled(prog, locMap), G.BindDualValues(m.learnables()...))
+	vm := G.NewTapeMachine(g, G.WithPrecompiled(prog, locMap), G.BindDualValues(n.Learnables()...))
 	solver := G.NewRMSPropSolver(G.WithBatchSize(float64(bs)))
 	defer vm.Close()
 
