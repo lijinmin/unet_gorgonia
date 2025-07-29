@@ -34,7 +34,6 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Debug(cost1.Shape())
 	cost2 := diceLoss(g, dt, out2, mask)
 	totalCost := G.Must(G.Add(cost1, cost2))
 
@@ -74,7 +73,7 @@ func diceLoss(g *G.ExprGraph, dt tensor.Dtype, input, target *G.Node) *G.Node {
 	b := G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3))))
 	dice := G.Must(G.Mean(G.Must(G.HadamardDiv(G.Must(G.Add(a, epsilon)), G.Must(G.Add(b, epsilon))))))
 
-	one := G.NewTensor(g, dt, 1, G.WithName("1"), G.WithInit(G.ValuesOf(1)))
+	one := G.NewMatrix(g, dt, G.WithShape(1, 1), G.WithName("1"), G.WithInit(G.ValuesOf(float64(1))))
 
 	loss := G.Must(G.Add(one, G.Must(G.Neg(dice))))
 	return loss

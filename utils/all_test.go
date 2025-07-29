@@ -99,6 +99,23 @@ func TestMean(t *testing.T) {
 	t.Log(d.Value())
 	t.Log(n.Value())
 }
+
+func TestSum(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{5, 2, 1, 2, 3, 2, 4, 4, 5, 2, 1, 2, 1, 2, 4, 4}
+	xVal := tensor.New(tensor.WithShape(2, 2, 1, 4), tensor.WithBacking(xData)) //
+
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal))
+
+	z := G.Must(G.Sum(x, 1, 3))
+
+	vm := G.NewTapeMachine(g)
+	defer vm.Close()
+	vm.RunAll()
+	t.Log("\n", x.Value())
+	t.Log(z.Value())
+
+}
 func TestTensor(t *testing.T) {
 	xData := []float64{1, 2, 3, 4, 1, 2, 3, 4}
 	xVal := tensor.New(tensor.WithShape(1, 2, 1, 4), tensor.WithBacking(xData)) //

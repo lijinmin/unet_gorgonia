@@ -19,7 +19,18 @@ type Unet struct {
 }
 
 func (u Unet) Learnables() G.Nodes {
-	return G.Nodes{}
+	nodes := G.Nodes{}
+	nodes = append(nodes, u.up1.learnables()...)
+	nodes = append(nodes, u.up2.learnables()...)
+	nodes = append(nodes, u.up3.learnables()...)
+	nodes = append(nodes, u.up4.learnables()...)
+	nodes = append(nodes, u.down1.learnables()...)
+	nodes = append(nodes, u.down2.learnables()...)
+	nodes = append(nodes, u.down3.learnables()...)
+	nodes = append(nodes, u.down4.learnables()...)
+	nodes = append(nodes, u.inc.doubleConv.learnables()...)
+	nodes = append(nodes, u.outc.learnables()...)
+	return nodes
 }
 
 type up struct {
@@ -134,6 +145,11 @@ func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, 
 		},
 	}
 }
+func (d *doubleConv) learnables() G.Nodes {
+	return G.Nodes{
+		d.conv1, d.conv2, d.batchNorm1.scale, d.batchNorm1.bias, d.batchNorm2.scale, d.batchNorm2.bias,
+	}
+}
 func (n *inc) forward(x *G.Node) (*G.Node, error) {
 	retVal, err := DoubleConv(x, n.doubleConv)
 	return retVal, err
@@ -146,6 +162,16 @@ func (d *down) forward(x *G.Node) (*G.Node, error) {
 	}
 	retVal1, err := DoubleConv(retVal, d.doubleConv)
 	return retVal1, err
+}
+func (u *down) learnables() G.Nodes {
+	nodes := G.Nodes{}
+	nodes = append(nodes, u.doubleConv.learnables()...)
+	return nodes
+}
+func (u *up) learnables() G.Nodes {
+	nodes := G.Nodes{u.filter}
+	nodes = append(nodes, u.doubleConv.learnables()...)
+	return nodes
 }
 
 func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
