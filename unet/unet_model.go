@@ -109,7 +109,7 @@ func newUp(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputCh
 	return &up{
 		upsample2DScale: scale,
 		doubleConv:      newDoubleConv(g, dt, inputChannels, midChannels, outputChannels, label),
-		filter:          G.NewTensor(g, dt, 4, G.WithShape(inputChannels, outputChannels, 2, 2), G.WithName(fmt.Sprintf("%s_filter", label)), G.WithInit(G.GlorotN(1.0))),
+		filter:          G.NewTensor(g, dt, 4, G.WithShape(outputChannels, inputChannels, 2, 2), G.WithName(fmt.Sprintf("%s_filter", label)), G.WithInit(G.GlorotN(1.0))),
 	}
 }
 
