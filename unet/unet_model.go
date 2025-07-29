@@ -109,7 +109,7 @@ func newUp(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputCh
 	return &up{
 		upsample2DScale: scale,
 		doubleConv:      newDoubleConv(g, dt, inputChannels, midChannels, outputChannels, label),
-		filter:          G.NewTensor(g, dt, 4, G.WithShape(inputChannels, outputChannels, 3, 3), G.WithName(fmt.Sprintf("%s_filter", label)), G.WithInit(G.GlorotN(1.0))),
+		filter:          G.NewTensor(g, dt, 4, G.WithShape(inputChannels, outputChannels, 2, 2), G.WithName(fmt.Sprintf("%s_filter", label)), G.WithInit(G.GlorotN(1.0))),
 	}
 }
 
@@ -151,10 +151,13 @@ func (d *down) forward(x *G.Node) (*G.Node, error) {
 func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 	retVal0, err := G.Upsample2D(x1, 2) // 需调整
 	if err != nil {
+		log.Fatal(err)
 		return retVal0, err
 	}
+	log.Debug(retVal0.Shape())
 	retVal1, err := G.Conv2d(retVal0, u.filter, tensor.Shape{2, 2}, []int{0, 0}, []int{2, 2}, []int{1, 1})
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
 
@@ -162,12 +165,17 @@ func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 	diffX := x2.Shape()[3] - retVal1.Shape()[3]
 	retVal2, err := G.Pad(retVal1, []int{diffY / 2, diffY - diffY/2, diffX / 2, diffX - diffX/2})
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
+
 	}
+	log.Debug(retVal2.Shape())
 	retVal3, err := G.Concat(1, x2, retVal2)
 	if err != nil {
+		log.Fatal(err)
 		return nil, err
 	}
+	log.Debug(retVal3.Shape())
 
 	retVal4, err := DoubleConv(retVal3, u.doubleConv)
 	return retVal4, err
