@@ -154,7 +154,7 @@ func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 		log.Fatal(err)
 		return retVal0, err
 	}
-	log.Debug(retVal0.Shape())
+	//log.Debug(retVal0.Shape())
 	retVal1, err := G.Conv2d(retVal0, u.filter, tensor.Shape{2, 2}, []int{0, 0}, []int{2, 2}, []int{1, 1})
 	if err != nil {
 		log.Fatal(err)
@@ -169,15 +169,16 @@ func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 		return nil, err
 
 	}
-	log.Debug(retVal2.Shape())
+	//log.Debug(retVal2.Shape())
 	retVal3, err := G.Concat(1, x2, retVal2)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal3.Shape())
+	//log.Debug(retVal3.Shape())
 
 	retVal4, err := DoubleConv(retVal3, u.doubleConv)
+	//log.Debug(retVal4.Shape())
 	return retVal4, err
 
 }
