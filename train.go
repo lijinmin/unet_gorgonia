@@ -34,6 +34,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Debug(cost1.Shape())
 	cost2 := diceLoss(g, dt, out2, mask)
 	totalCost := G.Must(G.Add(cost1, cost2))
 

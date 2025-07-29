@@ -42,7 +42,7 @@ func TestConv2d(t *testing.T) {
 
 func TestSoftMax(t *testing.T) {
 	g := G.NewGraph()
-	xData := []float64{5, 2, 1, 2, 1, 2, 4, 4}
+	xData := []float64{5, 2, 10, 2, 1, 2, 4, 4}
 	xVal := tensor.New(tensor.WithShape(1, 2, 1, 4), tensor.WithBacking(xData)) //
 
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal))
@@ -60,6 +60,45 @@ func TestSoftMax(t *testing.T) {
 	t.Log(d.Value())
 }
 
+func TestLog(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{5, 2, 1e1, 2, 1, 10, 4, 4}                               // 1e1 = 10
+	xVal := tensor.New(tensor.WithShape(1, 2, 1, 4), tensor.WithBacking(xData)) //
+
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal))
+	z := G.Must(G.Log(x))  // ln(x)
+	n := G.Must(G.Log2(x)) // log(x) 以2为低
+	vm := G.NewTapeMachine(g)
+	defer vm.Close()
+	vm.RunAll()
+	t.Log("\n", x.Value())
+	t.Log(z.Value())
+	t.Log(n.Value())
+}
+
+func TestMean(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{5, 2, 1, 2, 1, 2, 4, 4, 5, 2, 1, 2, 1, 2, 4, 4}
+	xVal := tensor.New(tensor.WithShape(2, 2, 1, 4), tensor.WithBacking(xData)) //
+
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal))
+	z := G.Must(G.SoftMax(x, 1))
+
+	d, err := G.Log2(z)
+	if err != nil {
+		t.Log(err)
+	}
+
+	n, err := G.Mean(x)
+	t.Log(n.Shape())
+	vm := G.NewTapeMachine(g)
+	defer vm.Close()
+	vm.RunAll()
+	t.Log("\n", x.Value())
+	t.Log(z.Value())
+	t.Log(d.Value())
+	t.Log(n.Value())
+}
 func TestTensor(t *testing.T) {
 	xData := []float64{1, 2, 3, 4, 1, 2, 3, 4}
 	xVal := tensor.New(tensor.WithShape(1, 2, 1, 4), tensor.WithBacking(xData)) //
