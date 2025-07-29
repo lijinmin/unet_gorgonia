@@ -249,3 +249,30 @@ func TestHadamardDiv(t *testing.T) {
 	t.Log("\n", y.Value())
 	t.Log("\n", z.Value())
 }
+
+func TestConstant(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	yData := []float64{2, 1, 2, 1, 2, 1, 1, 3, 1, 1, 5, 1, 2, 1, 2, 1, 2, 1, 1, 3, 6, 1, 5, 1}
+	xVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(xData)) //
+	yVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(yData))
+	t.Log(xVal)
+	t.Log(yVal)
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
+	y := G.NewTensor(g, tensor.Float64, 4, G.WithValue(yVal), G.WithName("y"))
+	z := G.Must(G.HadamardDiv(x, y))
+
+	nn := G.Must(G.Mul(G.NewConstant(1.0), G.Must(G.Mean(z))))
+
+	zz := G.Must(G.Sub(G.NewConstant(1.0), G.NewConstant(0.5)))
+	vm := G.NewTapeMachine(g)
+
+	defer vm.Close()
+
+	vm.RunAll()
+	t.Log("\n", x.Value())
+	t.Log("\n", y.Value())
+	t.Log("\n", z.Value())
+	t.Log(nn.Value())
+	t.Log(zz.Value())
+}
