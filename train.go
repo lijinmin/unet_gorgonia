@@ -18,12 +18,12 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	bs := 4
 	g := G.NewGraph()
 	n := unet.NewUnet(g, n_channels, n_classes, false, dt)
-	input := G.NewTensor(g, dt, 4, G.WithName("input"))
+	input := G.NewTensor(g, dt, 4, G.WithShape(bs, 3, 640, 959), G.WithName("input"))
 	out, err := n.Forward(input)
 	if err != nil {
 		log.Fatal(err)
 	}
-	mask := G.NewTensor(g, dt, 4, G.WithName("mask"))
+	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 2, 640, 959), G.WithName("mask"))
 
 	//获取损失函数
 	out2, err := G.SoftMax(out, 1)
