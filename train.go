@@ -24,7 +24,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 		log.Fatal(err)
 	}
 	//mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 2, 640, 959), G.WithName("mask"))
-	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 64, 640, 959), G.WithName("mask"))
+	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 512, 80, 119), G.WithName("mask"))
 
 	//获取损失函数
 	out2, err := G.SoftMax(out, 1)
@@ -48,7 +48,6 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	G.Read(totalCost, &costVal)
 
 	log.Debug(len(n.Learnables()))
-	//nodes := G.Nodes{G.NewTensor(g, tensor.Float64, 4, G.WithShape(32, 1, 3, 3), G.WithName("w0"), G.WithInit(G.GlorotN(1.0)))}
 	totalCost = G.Must(G.Mean(out))
 	if _, err = G.Grad(totalCost, n.Learnables()...); err != nil {
 		log.Fatal(err)

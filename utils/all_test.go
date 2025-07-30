@@ -150,6 +150,33 @@ func TestPad(t *testing.T) {
 		vm.Reset()
 	}
 }
+func TestPad2(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	xVal := tensor.New(tensor.WithShape(1, 1, 4, 4), tensor.WithBacking(xData)) // batch channel height width
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
+
+	t.Log(3/2, 1/2)
+	z, err := Pad(g, x, []int{1, 1, 1, 1}, "")
+	if err != nil {
+		t.Log(err)
+	}
+	t.Log(z.Shape())
+	t.Log(x.Value())
+	vm := G.NewTapeMachine(g)
+	defer vm.Close()
+	for i := 0; i < 1; i++ {
+		if err := vm.RunAll(); err != nil {
+			t.Fatal(err)
+		}
+
+		//xData = []float64{1, 2, 3, 4, 5, 6, 7, 8, 9}
+		//xVal = tensor.New(tensor.WithShape(3, 3), tensor.WithBacking(xData))
+		//G.Let(x, xVal)
+		t.Log(z.Value())
+		vm.Reset()
+	}
+}
 
 func TestConCat(t *testing.T) {
 	g := G.NewGraph()
