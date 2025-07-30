@@ -40,7 +40,12 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		shape[dim] = formPadding[i]
 		if formPadding[i] < 0 {
 			nodes, _ := G.Unconcat(result, dim, -1*formPadding[i])
-			result = nodes[0]
+			if i%2 == 0 {
+				result = nodes[1]
+			} else {
+				result = nodes[0]
+			}
+
 		} else {
 			zeros := G.NewTensor(g, input.Dtype(), dims, G.WithShape(shape...), G.WithInit(G.Zeroes()))
 			if i%2 == 0 {
