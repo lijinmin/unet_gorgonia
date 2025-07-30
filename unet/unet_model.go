@@ -29,8 +29,8 @@ func (u *Unet) Learnables() G.Nodes {
 	//nodes = append(nodes, u.down2.learnables()...)
 	//nodes = append(nodes, u.down3.learnables()...)
 	//nodes = append(nodes, u.down4.learnables()...)
-	//nodes = append(nodes, u.inc.doubleConv.learnables()...)
-	nodes = append(nodes, u.LearnablesTest()...)
+	nodes = append(nodes, u.inc.doubleConv.learnables()...)
+	//nodes = append(nodes, u.LearnablesTest()...)
 	return nodes
 }
 
@@ -222,6 +222,7 @@ func (n *Unet) Forward(x *G.Node) (*G.Node, error) {
 		return nil, err
 	}
 	log.Debug(retVal1.Shape())
+	return retVal1, err
 
 	retVal2, err := n.down1.forward(retVal1)
 	if err != nil {
