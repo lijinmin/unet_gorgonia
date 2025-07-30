@@ -9,6 +9,7 @@ import (
 
 type Unet struct {
 	g                          *G.ExprGraph
+	dt                         tensor.Dtype
 	n_channels                 int
 	n_classes                  int
 	bilinear                   bool
@@ -18,19 +19,23 @@ type Unet struct {
 	inc                        *inc
 }
 
-func (u Unet) Learnables() G.Nodes {
+func (u *Unet) Learnables() G.Nodes {
 	nodes := G.Nodes{}
-	nodes = append(nodes, u.up1.learnables()...)
-	nodes = append(nodes, u.up2.learnables()...)
-	nodes = append(nodes, u.up3.learnables()...)
-	nodes = append(nodes, u.up4.learnables()...)
-	nodes = append(nodes, u.down1.learnables()...)
-	nodes = append(nodes, u.down2.learnables()...)
-	nodes = append(nodes, u.down3.learnables()...)
-	nodes = append(nodes, u.down4.learnables()...)
-	nodes = append(nodes, u.inc.doubleConv.learnables()...)
-	nodes = append(nodes, u.outc.learnables()...)
+	//nodes = append(nodes, u.up1.learnables()...)
+	//nodes = append(nodes, u.up2.learnables()...)
+	//nodes = append(nodes, u.up3.learnables()...)
+	//nodes = append(nodes, u.up4.learnables()...)
+	//nodes = append(nodes, u.down1.learnables()...)
+	//nodes = append(nodes, u.down2.learnables()...)
+	//nodes = append(nodes, u.down3.learnables()...)
+	//nodes = append(nodes, u.down4.learnables()...)
+	//nodes = append(nodes, u.inc.doubleConv.learnables()...)
+	nodes = append(nodes, u.LearnablesTest()...)
 	return nodes
+}
+
+func (u *Unet) LearnablesTest() G.Nodes {
+	return G.Nodes{G.NewTensor(u.g, u.dt, 4, G.WithShape(32, 1, 3, 3), G.WithName("w0"), G.WithInit(G.GlorotN(1.0)))}
 }
 
 type up struct {
@@ -86,6 +91,7 @@ func NewUnet(g *G.ExprGraph, n_channels, n_classes int, bilinear bool, dt tensor
 
 	return &Unet{
 		g:          g,
+		dt:         dt,
 		n_channels: n_channels,
 		n_classes:  n_classes,
 		bilinear:   bilinear,

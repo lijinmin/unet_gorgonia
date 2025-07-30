@@ -45,8 +45,6 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 
 	var costVal G.Value
 	G.Read(totalCost, &costVal)
-	cost := G.NewScalar(g, dt, G.WithName("cost"), G.WithInit(G.ValuesOf(1e-6)))
-	G.Let(cost, costVal)
 
 	log.Debug(len(n.Learnables()))
 	if _, err = G.Grad(totalCost, n.Learnables()...); err != nil {
