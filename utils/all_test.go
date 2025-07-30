@@ -157,7 +157,7 @@ func TestPad2(t *testing.T) {
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
 
 	t.Log(3/2, 1/2)
-	z, err := Pad(g, x, []int{1, 1, 1, 1}, "")
+	z, err := Pad(g, x, []int{3, 1, 2, 4}, "")
 	if err != nil {
 		t.Log(err)
 	}

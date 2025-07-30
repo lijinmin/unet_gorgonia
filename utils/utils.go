@@ -20,17 +20,17 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 	formPadding := []int{}
 
 	if len(padding) == 2 {
-		padTop = padding[0]
-		padBottom = padding[0]
-		padLeft = padding[1]
-		padRight = padding[1]
-	} else {
-		padTop = padding[0]
+		padTop = padding[1]
 		padBottom = padding[1]
-		padLeft = padding[2]
-		padRight = padding[3]
+		padLeft = padding[0]
+		padRight = padding[0]
+	} else {
+		padLeft = padding[0]
+		padRight = padding[1]
+		padTop = padding[2]
+		padBottom = padding[3]
 	}
-	formPadding = append(formPadding, padTop, padBottom, padLeft, padRight)
+	formPadding = append(formPadding, padLeft, padRight, padTop, padBottom)
 	for i := 0; i < 4; i++ {
 		if formPadding[i] == 0 {
 			continue
