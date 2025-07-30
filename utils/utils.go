@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	G "gorgonia.org/gorgonia"
+	"gorgonia.org/tensor"
 )
 
 func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, error) {
@@ -37,16 +38,27 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		}
 		dim := dims - 1 - i/2 // 维度
 		shape := result.Shape()
-		shape[dim] = formPadding[i]
+
 		if formPadding[i] < 0 {
-			nodes, _ := G.Unconcat(result, dim, -1*formPadding[i])
-			if i%2 == 0 {
-				result = nodes[1]
-			} else {
-				result = nodes[0]
+			ss := make([]tensor.Slice, dims)
+			for j := 0; j < dims; j++ {
+				if j == dim {
+					ss[i] = G.S(0, shape[dim]+formPadding[i])
+				} else {
+					ss[i] = G.S(0, shape[dim])
+				}
 			}
+			result, _ = G.Slice(input, ss...)
+
+			//nodes, _ := G.Unconcat(result, dim, -1*formPadding[i])
+			//if i%2 == 0 {
+			//	result = nodes[1]
+			//} else {
+			//	result = nodes[0]
+			//}
 
 		} else {
+			shape[dim] = formPadding[i]
 			zeros := G.NewTensor(g, input.Dtype(), dims, G.WithShape(shape...), G.WithInit(G.Zeroes()))
 			if i%2 == 0 {
 				result, _ = G.Concat(dim, zeros, result)
