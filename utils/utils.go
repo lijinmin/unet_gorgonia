@@ -42,26 +42,26 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		//log.Debug(shape)
 
 		if formPadding[i] < 0 {
-			ss := make([]tensor.Slice, dims)
-			for j := 0; j < dims; j++ {
-				if j == dim {
-					if i%2 == 0 {
-						//log.Debug(-1*formPadding[i], shape[dim])
-						ss[j] = G.S(-1*formPadding[i], shape[dim])
-					} else {
-						//log.Debug(0, shape[dim]+formPadding[i])
-						ss[j] = G.S(0, shape[dim]+formPadding[i])
-					}
-
-				} else {
-					//log.Debug(0, shape[j])
-					ss[j] = G.S(0, shape[j])
-				}
-			}
-			//log.Debug(ss)
-			result, _ = G.Slice(result, ss...)
-			shape[dim] = shape[dim] + formPadding[i]
-			result = G.Must(G.Reshape(result, shape))
+			//ss := make([]tensor.Slice, dims)
+			//for j := 0; j < dims; j++ {
+			//	if j == dim {
+			//		if i%2 == 0 {
+			//			//log.Debug(-1*formPadding[i], shape[dim])
+			//			ss[j] = G.S(-1*formPadding[i], shape[dim])
+			//		} else {
+			//			//log.Debug(0, shape[dim]+formPadding[i])
+			//			ss[j] = G.S(0, shape[dim]+formPadding[i])
+			//		}
+			//
+			//	} else {
+			//		//log.Debug(0, shape[j])
+			//		ss[j] = G.S(0, shape[j])
+			//	}
+			//}
+			////log.Debug(ss)
+			//result, _ = G.Slice(result, ss...)
+			//shape[dim] = shape[dim] + formPadding[i]
+			//result = G.Must(G.Reshape(result, shape))
 
 		} else {
 			shape[dim] = formPadding[i]
@@ -74,6 +74,27 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		}
 
 	}
+
+	ss := make([]tensor.Slice, dims)
+	shape := result.Shape()
+	for j := 0; j < dims; j++ {
+		ss[j] = G.S(0, shape[j])
+	}
+	for i := 0; i < 4; i++ {
+		if formPadding[i] >= 0 {
+			continue
+		}
+		dim := dims - 1 - i/2 // 维度
+		if i%2 == 0 {
+			ss[dim] = G.S(-1*formPadding[i], shape[dim])
+		} else {
+			ss[dim] = G.S(0, shape[dim]+formPadding[i])
+		}
+		shape[dim] = shape[dim] + formPadding[i]
+
+	}
+	result, _ = G.Slice(result, ss...)
+	result = G.Must(G.Reshape(result, shape))
 
 	return result, nil
 }
