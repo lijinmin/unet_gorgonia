@@ -36,31 +36,32 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		if formPadding[i] == 0 {
 			continue
 		}
+		//log.Debug(formPadding[i])
 		dim := dims - 1 - i/2 // 维度
 		shape := result.Shape()
+		//log.Debug(shape)
 
 		if formPadding[i] < 0 {
 			ss := make([]tensor.Slice, dims)
 			for j := 0; j < dims; j++ {
 				if j == dim {
 					if i%2 == 0 {
-						ss[i] = G.S(-1*formPadding[i], shape[dim])
+						//log.Debug(-1*formPadding[i], shape[dim])
+						ss[j] = G.S(-1*formPadding[i], shape[dim])
 					} else {
-						ss[i] = G.S(0, shape[dim]+formPadding[i])
+						//log.Debug(0, shape[dim]+formPadding[i])
+						ss[j] = G.S(0, shape[dim]+formPadding[i])
 					}
 
 				} else {
-					ss[i] = G.S(0, shape[dim])
+					//log.Debug(0, shape[j])
+					ss[j] = G.S(0, shape[j])
 				}
 			}
-			result, _ = G.Slice(input, ss...)
-
-			//nodes, _ := G.Unconcat(result, dim, -1*formPadding[i])
-			//if i%2 == 0 {
-			//	result = nodes[1]
-			//} else {
-			//	result = nodes[0]
-			//}
+			//log.Debug(ss)
+			result, _ = G.Slice(result, ss...)
+			shape[dim] = shape[dim] + formPadding[i]
+			result = G.Must(G.Reshape(result, shape))
 
 		} else {
 			shape[dim] = formPadding[i]

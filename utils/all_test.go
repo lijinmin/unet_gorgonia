@@ -157,7 +157,7 @@ func TestPad2(t *testing.T) {
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
 
 	t.Log(3/2, 1/2)
-	z, err := Pad(g, x, []int{-1, 1, 2, 4}, "")
+	z, err := Pad(g, x, []int{-1, 1, -2, 4}, "")
 	if err != nil {
 		t.Log(err)
 	}
@@ -174,6 +174,7 @@ func TestPad2(t *testing.T) {
 		//xVal = tensor.New(tensor.WithShape(3, 3), tensor.WithBacking(xData))
 		//G.Let(x, xVal)
 		t.Log(z.Value())
+		t.Log(z.Shape())
 		vm.Reset()
 	}
 }
@@ -209,17 +210,17 @@ func TestUnContat(t *testing.T) {
 
 func TestSlice(t *testing.T) {
 	g := G.NewGraph()
-	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
-	xVal := tensor.New(tensor.WithShape(2, 1, 4, 4), tensor.WithBacking(xData)) // batch channel height width
+	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+	xVal := tensor.New(tensor.WithShape(1, 1, 4, 4), tensor.WithBacking(xData)) // batch channel height width
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
 
 	t.Log(3/2, 1/2)
-	z, err := G.Slice(x, G.S(0, 2), G.S(0, 1), G.S(0, 4), G.S(0, 3))
+	z, err := G.Slice(x, G.S(0, 1), G.S(0, 1), G.S(0, 4), G.S(0, 3))
 	if err != nil {
 		t.Log(err)
 	}
 	t.Log(z.Shape())
-	d, _ := G.Reshape(z, tensor.Shape{2, 1, 4, 3})
+	d, _ := G.Reshape(z, tensor.Shape{1, 1, 4, 3})
 	t.Log(x.Value())
 	vm := G.NewTapeMachine(g)
 	defer vm.Close()
