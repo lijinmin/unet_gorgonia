@@ -43,7 +43,12 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 			ss := make([]tensor.Slice, dims)
 			for j := 0; j < dims; j++ {
 				if j == dim {
-					ss[i] = G.S(0, shape[dim]+formPadding[i])
+					if i%2 == 0 {
+						ss[i] = G.S(-1*formPadding[i], shape[dim])
+					} else {
+						ss[i] = G.S(0, shape[dim]+formPadding[i])
+					}
+
 				} else {
 					ss[i] = G.S(0, shape[dim])
 				}

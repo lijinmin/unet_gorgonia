@@ -202,6 +202,7 @@ func TestUnContat(t *testing.T) {
 		//G.Let(x, xVal)
 		t.Log(nodes[0].Value())
 		t.Log(nodes[1].Value())
+		t.Log(nodes[0].Shape())
 		vm.Reset()
 	}
 }
@@ -213,11 +214,12 @@ func TestSlice(t *testing.T) {
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
 
 	t.Log(3/2, 1/2)
-	z, err := G.Slice(x, G.S(0, 1))
+	z, err := G.Slice(x, G.S(0, 2), G.S(0, 1), G.S(0, 4), G.S(0, 3))
 	if err != nil {
 		t.Log(err)
 	}
 	t.Log(z.Shape())
+	d, _ := G.Reshape(z, tensor.Shape{2, 1, 4, 3})
 	t.Log(x.Value())
 	vm := G.NewTapeMachine(g)
 	defer vm.Close()
@@ -231,6 +233,8 @@ func TestSlice(t *testing.T) {
 		//G.Let(x, xVal)
 		t.Log(z.Value())
 		t.Log(z.Shape())
+		t.Log(d.Value())
+		t.Log(d.Shape())
 		vm.Reset()
 	}
 }
