@@ -41,29 +41,7 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		shape := result.Shape()
 		//log.Debug(shape)
 
-		if formPadding[i] < 0 {
-			//ss := make([]tensor.Slice, dims)
-			//for j := 0; j < dims; j++ {
-			//	if j == dim {
-			//		if i%2 == 0 {
-			//			//log.Debug(-1*formPadding[i], shape[dim])
-			//			ss[j] = G.S(-1*formPadding[i], shape[dim])
-			//		} else {
-			//			//log.Debug(0, shape[dim]+formPadding[i])
-			//			ss[j] = G.S(0, shape[dim]+formPadding[i])
-			//		}
-			//
-			//	} else {
-			//		//log.Debug(0, shape[j])
-			//		ss[j] = G.S(0, shape[j])
-			//	}
-			//}
-			////log.Debug(ss)
-			//result, _ = G.Slice(result, ss...)
-			//shape[dim] = shape[dim] + formPadding[i]
-			//result = G.Must(G.Reshape(result, shape))
-
-		} else {
+		if formPadding[i] > 0 {
 			shape[dim] = formPadding[i]
 			zeros := G.NewTensor(g, input.Dtype(), dims, G.WithShape(shape...), G.WithInit(G.Zeroes()))
 			if i%2 == 0 {
