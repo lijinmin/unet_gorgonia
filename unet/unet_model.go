@@ -22,15 +22,16 @@ type Unet struct {
 
 func (u *Unet) Learnables() G.Nodes {
 	nodes := G.Nodes{}
-	//nodes = append(nodes, u.up1.learnables()...)
-	//nodes = append(nodes, u.up2.learnables()...)
-	//nodes = append(nodes, u.up3.learnables()...)
-	//nodes = append(nodes, u.up4.learnables()...)
+	nodes = append(nodes, u.up1.learnables()...)
+	nodes = append(nodes, u.up2.learnables()...)
+	nodes = append(nodes, u.up3.learnables()...)
+	nodes = append(nodes, u.up4.learnables()...)
 	nodes = append(nodes, u.down1.learnables()...)
 	nodes = append(nodes, u.down2.learnables()...)
 	nodes = append(nodes, u.down3.learnables()...)
 	nodes = append(nodes, u.down4.learnables()...)
 	nodes = append(nodes, u.inc.doubleConv.learnables()...)
+	nodes = append(nodes, u.outc.learnables()...)
 	//nodes = append(nodes, u.LearnablesTest()...)
 	return nodes
 }
