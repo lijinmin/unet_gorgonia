@@ -32,18 +32,18 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		padBottom = padding[3]
 	}
 	formPadding = append(formPadding, padLeft, padRight, padTop, padBottom)
+
 	for i := 0; i < 4; i++ {
-		if formPadding[i] == 0 {
+		if formPadding[i] <= 0 {
 			continue
 		}
-		//log.Debug(formPadding[i])
 		dim := dims - 1 - i/2 // 维度
-		shape := result.Shape()
-		//log.Debug(shape)
+		zeroshape := result.Shape()
 
 		if formPadding[i] > 0 {
-			shape[dim] = formPadding[i]
-			zeros := G.NewTensor(g, input.Dtype(), dims, G.WithShape(shape...), G.WithInit(G.Zeroes()))
+			zeroshape[dim] = formPadding[i]
+
+			zeros := G.NewTensor(g, input.Dtype(), dims, G.WithShape(zeroshape...), G.WithInit(G.Zeroes()))
 			if i%2 == 0 {
 				result, _ = G.Concat(dim, zeros, result)
 			} else {
@@ -52,12 +52,12 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		}
 
 	}
-
 	ss := make([]tensor.Slice, dims)
 	shape := result.Shape()
 	for j := 0; j < dims; j++ {
 		ss[j] = G.S(0, shape[j])
 	}
+
 	for i := 0; i < 4; i++ {
 		if formPadding[i] >= 0 {
 			continue
