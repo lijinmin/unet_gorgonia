@@ -394,3 +394,10 @@ func TestGrad(t *testing.T) {
 	t.Log("\n", z.Value())
 	t.Log(nn.Value())
 }
+
+func TestShuffle(t *testing.T) {
+	a := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	t.Log(a)
+	Shuffle(a)
+	t.Log(a)
+}

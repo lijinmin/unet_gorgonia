@@ -4,6 +4,8 @@ import (
 	"fmt"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
+	"math/rand"
+	"time"
 )
 
 func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, error) {
@@ -75,4 +77,16 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 	result = G.Must(G.Reshape(result, shape))
 
 	return result, nil
+}
+
+func Shuffle(slice []string) {
+	// 使用当前时间初始化随机数生成器
+	rand.Seed(time.Now().UnixNano())
+	n := len(slice)
+	for i := 0; i < n; i++ {
+		// 生成一个[i, n)范围内的随机索引
+		j := i + rand.Intn(n-i)
+		// 交换元素
+		slice[i], slice[j] = slice[j], slice[i]
+	}
 }
