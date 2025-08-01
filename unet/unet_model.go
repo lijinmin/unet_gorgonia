@@ -5,6 +5,7 @@ import (
 	"github.com/ngaut/log"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
+	"unet_gorgonia/utils"
 )
 
 type Unet struct {
@@ -42,6 +43,7 @@ type up struct {
 	upsample2DScale int
 	filter          *G.Node
 	doubleConv      *doubleConv
+	g               *G.ExprGraph
 }
 type inc struct {
 	doubleConv *doubleConv
@@ -124,6 +126,7 @@ func newDown(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, output
 
 func newUp(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputChannels, scale int, label string) *up {
 	return &up{
+		g:               g,
 		upsample2DScale: scale,
 		doubleConv:      newDoubleConv(g, dt, inputChannels, midChannels, outputChannels, label),
 		filter:          G.NewTensor(g, dt, 4, G.WithShape(outputChannels, inputChannels, 2, 2), G.WithName(fmt.Sprintf("%s_filter", label)), G.WithInit(G.GlorotN(1.0))),
@@ -193,9 +196,9 @@ func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 		return nil, err
 	}
 
-	diffY := x2.Shape()[2] - retVal1.Shape()[2]
-	diffX := x2.Shape()[3] - retVal1.Shape()[3]
-	retVal2, err := G.Pad(retVal1, []int{diffY / 2, diffY - diffY/2, diffX / 2, diffX - diffX/2})
+	diffY := x2.Shape()[3] - retVal1.Shape()[3] // 左右
+	diffX := x2.Shape()[2] - retVal1.Shape()[2] // 上下
+	retVal2, err := utils.Pad(u.g, retVal1, []int{diffY / 2, diffY - diffY/2, diffX / 2, diffX - diffX/2}, "")
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
