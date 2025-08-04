@@ -1,5 +1,7 @@
 package utils
 
+import "log"
+
 type BasicDataset struct {
 	IDs        []string
 	imagesDir  string
@@ -8,8 +10,16 @@ type BasicDataset struct {
 	maskSuffix string
 }
 
-func (data *BasicDataset) NewDataset() *BasicDataset {
-	return &BasicDataset{}
+func (data *BasicDataset) NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicDataset {
+	if scale <= 0 || scale > 1 {
+		log.Fatal("scale must be between 0 and 1")
+	}
+	return &BasicDataset{
+		imagesDir:  imagesDir,
+		maskDir:    maskDir,
+		maskSuffix: maskSuffix,
+		Scale:      scale,
+	}
 }
 
 func (data *BasicDataset) Init() {
