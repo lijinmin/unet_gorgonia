@@ -321,22 +321,23 @@ func TestHadamardProd(t *testing.T) {
 
 func TestHadamardDiv(t *testing.T) {
 	g := G.NewGraph()
-	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
-	yData := []float64{2, 1, 2, 1, 2, 1, 1, 3, 1, 1, 5, 1, 2, 1, 2, 1, 2, 1, 1, 3, 6, 1, 5, 1}
-	xVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(xData)) //
-	yVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(yData))
+	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	yData := []float64{2, 1, 2, 1, 2, 1, 1, 3, 1, 1, 5, 1, 2, 1, 2, 1, 2, 1, 1, 3, 6, 1, 5, 1, 2, 1, 2, 1, 2, 1, 1, 3, 1, 1, 5, 1, 2, 1, 2, 1, 2, 1, 1, 3, 6, 1, 5, 1}
+	xVal := tensor.New(tensor.WithShape(2, 2, 3, 4), tensor.WithBacking(xData)) //
+	yVal := tensor.New(tensor.WithShape(2, 2, 3, 4), tensor.WithBacking(yData))
 	t.Log(xVal)
 	t.Log(yVal)
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
 	y := G.NewTensor(g, tensor.Float64, 4, G.WithValue(yVal), G.WithName("y"))
-	z := G.Must(G.HadamardDiv(x, y))
+	z := G.Must(G.HadamardDiv(G.Must(G.Sum(x, 1, 2, 3)), G.Must(G.Sum(y, 1, 2, 3))))
+	z = G.Must(G.Mul(G.NewConstant(2.0), z))
 	vm := G.NewTapeMachine(g)
 	defer vm.Close()
 
 	vm.RunAll()
 	t.Log("\n", x.Value())
 	t.Log("\n", y.Value())
-	t.Log("\n", z.Value())
+	t.Log("\n", z.Value(), z.Shape())
 }
 
 func TestConstant(t *testing.T) {

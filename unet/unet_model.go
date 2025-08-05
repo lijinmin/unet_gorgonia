@@ -225,67 +225,67 @@ func (n *Unet) Forward(x *G.Node) (*G.Node, error) {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal1.Shape())
+	//log.Debug(retVal1.Shape())
 
 	retVal2, err := n.down1.forward(retVal1)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal2.Shape())
+	//log.Debug(retVal2.Shape())
 
 	retVal3, err := n.down2.forward(retVal2)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal3.Shape())
+	//log.Debug(retVal3.Shape())
 
 	retVal4, err := n.down3.forward(retVal3)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal4.Shape())
+	//log.Debug(retVal4.Shape())
 
 	retVal5, err := n.down4.forward(retVal4)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal5.Shape())
+	//log.Debug(retVal5.Shape())
 
 	retVal6, err := n.up1.forward(retVal5, retVal4)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal6.Shape())
-	return retVal6, err
+	//log.Debug(retVal6.Shape())
+	//return retVal6, err
 
 	retVal7, err := n.up2.forward(retVal6, retVal3)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal7.Shape())
+	//log.Debug(retVal7.Shape())
 
 	retVal8, err := n.up3.forward(retVal7, retVal2)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal8.Shape())
+	//log.Debug(retVal8.Shape())
 
 	retVal9, err := n.up4.forward(retVal8, retVal1)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	log.Debug(retVal9.Shape())
+	//log.Debug(retVal9.Shape())
 
 	retVal10, err := DoubleConv(retVal9, n.outc)
-	log.Debug(retVal10.Shape())
+	//log.Debug(retVal10.Shape())
 
 	return retVal10, err
 }
