@@ -94,16 +94,18 @@ func Shuffle(slice []string) {
 
 func RandomSplit(dataSet BasicDataset, valPercent float64) (trainSet *BasicDataset, valSet *BasicDataset) {
 	trainSet = &BasicDataset{
-		imagesDir:  dataSet.imagesDir,
-		maskSuffix: dataSet.maskSuffix,
-		maskDir:    dataSet.maskDir,
-		Scale:      dataSet.Scale,
+		imagesDir:   dataSet.imagesDir,
+		maskSuffix:  dataSet.maskSuffix,
+		maskDir:     dataSet.maskDir,
+		Scale:       dataSet.Scale,
+		imageSiffix: dataSet.imageSiffix,
 	}
 	valSet = &BasicDataset{
-		imagesDir:  dataSet.imagesDir,
-		maskSuffix: dataSet.maskSuffix,
-		maskDir:    dataSet.maskDir,
-		Scale:      dataSet.Scale,
+		imagesDir:   dataSet.imagesDir,
+		maskSuffix:  dataSet.maskSuffix,
+		maskDir:     dataSet.maskDir,
+		Scale:       dataSet.Scale,
+		imageSiffix: dataSet.imageSiffix,
 	}
 
 	valSetLenght := int(float64(len(dataSet.IDs)) * valPercent)

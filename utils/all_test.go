@@ -251,7 +251,7 @@ func TestConCat(t *testing.T) {
 	y := G.NewTensor(g, tensor.Float64, 4, G.WithValue(yVal), G.WithName("y"))
 
 	t.Log(3/2, 1/2)
-	z, err := G.Concat(1, y, x)
+	z, err := G.Concat(0, y, x)
 	if err != nil {
 		t.Log(err)
 	}

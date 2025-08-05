@@ -15,12 +15,13 @@ import (
 )
 
 type BasicDataset struct {
-	IDs        []string
-	imagesDir  string
-	maskDir    string
-	Scale      float64
-	maskSuffix string
-	maskValues []string
+	IDs         []string
+	imagesDir   string
+	maskDir     string
+	Scale       float64
+	maskSuffix  string
+	imageSiffix string
+	maskValues  []string
 }
 
 func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicDataset {
@@ -29,6 +30,7 @@ func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicData
 	}
 
 	ids := []string{}
+	imageSiffix := ""
 	filepath.WalkDir(imagesDir, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -38,6 +40,9 @@ func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicData
 			id := strings.TrimSpace(strings.Split(s, ".")[0])
 			if len(id) != 0 {
 				ids = append(ids, id)
+				if imageSiffix == "" {
+					imageSiffix = strings.TrimSpace(strings.Split(s, ".")[1])
+				}
 			}
 
 			ids = append(ids)
@@ -45,16 +50,17 @@ func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicData
 		return nil
 	})
 	return &BasicDataset{
-		imagesDir:  imagesDir,
-		maskDir:    maskDir,
-		maskSuffix: maskSuffix,
-		Scale:      scale,
-		IDs:        ids,
+		imagesDir:   imagesDir,
+		maskDir:     maskDir,
+		maskSuffix:  maskSuffix,
+		Scale:       scale,
+		IDs:         ids,
+		imageSiffix: imageSiffix,
 	}
 }
 
-func loadImage(s string) (image.Image, error) {
-	file, err := os.Open(s)
+func loadImage(filename string) (image.Image, error) {
+	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -76,9 +82,11 @@ func (data *BasicDataset) uniqueMaskValues() {
 func (data *BasicDataset) loadImage(filename string) {
 
 }
-func (data *BasicDataset) preProcess() {
+func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.Tensor) {
+	return
 
 }
 func (data *BasicDataset) getitem(id string) (imageTensor tensor.Tensor, maskTensor tensor.Tensor) {
+	imageFile := path.Join(data.imagesDir, id+data.maskSuffix)
 	return
 }
