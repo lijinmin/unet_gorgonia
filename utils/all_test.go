@@ -401,3 +401,23 @@ func TestShuffle(t *testing.T) {
 	Shuffle(a)
 	t.Log(a)
 }
+
+func TestLoadImage(t *testing.T) {
+	s := "../data/imgs/fff9b3a5373f_07.jpg"
+	//s1 := "../data/masks/fff9b3a5373f_07_mask.gif"
+	img, err := loadImage(s)
+	if err != nil {
+		t.Log(err)
+	}
+	rect := img.Bounds()
+	minPoint := rect.Min
+	maxPoint := rect.Max
+	for i := minPoint.X; i < maxPoint.X; i++ {
+		for j := minPoint.Y; j < maxPoint.Y; j++ {
+			img.At(i, j)
+		}
+	}
+
+	t.Log(rect, maxPoint.X)
+
+}
