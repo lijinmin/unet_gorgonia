@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/ngaut/log"
+	"gorgonia.org/tensor"
 	"image"
 	_ "image/gif"  // 注册gif解码器
 	_ "image/jpeg" // 注册jpeg解码器
@@ -78,6 +79,6 @@ func (data *BasicDataset) loadImage(filename string) {
 func (data *BasicDataset) preProcess() {
 
 }
-func (data *BasicDataset) getitem(id string) {
-
+func (data *BasicDataset) getitem(id string) (imageTensor tensor.Tensor, maskTensor tensor.Tensor) {
+	return
 }

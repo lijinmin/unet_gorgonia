@@ -4,6 +4,7 @@ import (
 	"fmt"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -131,6 +132,30 @@ var (
 	TrainChannel = make(chan TrainData, 100)
 )
 
-func LoadImages(ids []string, bs int) {
+func LoadImages(trainData *BasicDataset, bs int) {
+	var err error
+
+	IDs := trainData.IDs
+	batches := len(IDs) / bs
+	for i := 0; i < batches; i++ {
+		data := TrainData{}
+		for j := 0; j < bs; j++ {
+			index := i*bs + j
+			id := IDs[index]
+			inputsTensor, maskTensor := trainData.getitem(id)
+			if data.Inputs == nil {
+				data.Inputs = inputsTensor
+				data.Masks = maskTensor
+			} else {
+				data.Inputs, err = tensor.Concat(0, data.Inputs, inputsTensor)
+				if err != nil {
+					log.Fatal(err)
+				}
+				data.Masks, err = tensor.Concat(0, data.Masks, maskTensor)
+			}
+		}
+		TrainChannel <- data
+
+	}
 
 }
