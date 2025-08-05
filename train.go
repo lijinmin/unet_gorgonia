@@ -9,13 +9,13 @@ import (
 	"math/rand"
 	"time"
 	"unet_gorgonia/unet"
+	"unet_gorgonia/utils"
 )
 
-func train(epochs int, n_channels, n_classes int, bilinear bool) {
+func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	numExamples := 1000
 	rand.Seed(1337)
 	dt := tensor.Float64
-	bs := 4
 	g := G.NewGraph()
 	n := unet.NewUnet(g, n_channels, n_classes, false, dt)
 	input := G.NewTensor(g, dt, 4, G.WithShape(bs, n_channels, 1280, 1918), G.WithName("input"))
@@ -62,6 +62,9 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 	solver := G.NewRMSPropSolver(G.WithBatchSize(float64(bs)))
 	defer vm.Close()
 
+	totalSet := utils.NewDataset("./data/imgs", "/data/masks", "_mask.gif", 1.0)
+	trainSet, valSet := utils.RandomSplit(*totalSet, 0.1)
+
 	batches := numExamples / bs
 	log.Debugf("Batches %d", batches)
 	bar := pb.New(batches)
@@ -77,6 +80,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool) {
 			vm.Reset()
 			bar.Increment()
 		}
+		time.Sleep(1 * time.Second)
 	}
 }
 
