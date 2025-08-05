@@ -61,6 +61,7 @@ func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicData
 
 func loadImage(filename string) (image.Image, error) {
 	file, err := os.Open(filename)
+	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +84,60 @@ func (data *BasicDataset) loadImage(filename string) {
 
 }
 func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.Tensor) {
+	rect := img.Bounds()
+
+	if label == "mask" {
+		channel1 := []float64{}
+		channel2 := []float64{}
+		for i := 0; i < rect.Max.Y; i++ {
+			for j := 0; j < rect.Max.X; j++ {
+				x1, _, _, _ := img.At(j, i).RGBA()
+				if x1 == 0 {
+					channel1 = append(channel1, 1)
+					channel2 = append(channel2, 0)
+				} else {
+					channel1 = append(channel1, 0)
+					channel2 = append(channel2, 1)
+				}
+			}
+		}
+		valData := append(channel1, channel2...)
+		val = tensor.New(tensor.WithShape(1, 2, rect.Max.Y, rect.Max.X), tensor.WithBacking(valData))
+
+	} else {
+
+		channel1 := []float64{}
+		channel2 := []float64{}
+		channel3 := []float64{}
+		for i := 0; i < rect.Max.Y; i++ {
+			for j := 0; j < rect.Max.X; j++ {
+				x1, x2, x3, a := img.At(j, i).RGBA()
+				channel1 = append(channel1, float64(x1)/float64(a))
+				channel2 = append(channel2, float64(x2)/float64(a))
+				channel3 = append(channel3, float64(x3)/float64(a))
+			}
+		}
+		valData := append(channel1, channel2...)
+		valData = append(valData, channel3...)
+		val = tensor.New(tensor.WithShape(1, 3, rect.Max.Y, rect.Max.X), tensor.WithBacking(valData))
+	}
 	return
 
 }
 func (data *BasicDataset) getitem(id string) (imageTensor tensor.Tensor, maskTensor tensor.Tensor) {
-	imageFile := path.Join(data.imagesDir, id+data.maskSuffix)
+	var err error
+	imageFile := path.Join(data.imagesDir, id+data.imageSiffix)
+	maskFile := path.Join(data.maskDir, id+data.maskSuffix)
+	img, err := loadImage(imageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	imageTensor = data.preProcess(img, "image")
+
+	img, err = loadImage(maskFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	maskTensor = data.preProcess(img, "mask")
 	return
 }

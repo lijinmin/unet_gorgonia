@@ -117,9 +117,10 @@ func TestSum(t *testing.T) {
 
 }
 func TestTensor(t *testing.T) {
-	xData := []float64{1, 2, 3, 4, 1, 2, 3, 4}
+	xData := []float64{1, 2, 3, 4, 5, 6, 3, 4}
 	xVal := tensor.New(tensor.WithShape(1, 2, 1, 4), tensor.WithBacking(xData)) //
 	xVal.Set(3, float64(6))
+	xVal.SetAt(float64(3), 0, 1, 0, 3)
 	t.Log(xVal)
 }
 
@@ -404,18 +405,24 @@ func TestShuffle(t *testing.T) {
 }
 
 func TestLoadImage(t *testing.T) {
-	s := "../data/imgs/fff9b3a5373f_07.jpg"
-	//s1 := "../data/masks/fff9b3a5373f_07_mask.gif"
-	img, err := loadImage(s)
+	//s := "../data/imgs/fff9b3a5373f_07.jpg"
+	s1 := "../data/masks/fff9b3a5373f_07_mask.gif"
+	img, err := loadImage(s1)
 	if err != nil {
 		t.Log(err)
 	}
+	flag := true
 	rect := img.Bounds()
 	minPoint := rect.Min
 	maxPoint := rect.Max
 	for i := minPoint.X; i < maxPoint.X; i++ {
 		for j := minPoint.Y; j < maxPoint.Y; j++ {
 			img.At(i, j)
+			if flag {
+				r, g, b, a := img.At(i, j).RGBA()
+				t.Log(img.At(i, j), r, g, b, a)
+				flag = false
+			}
 		}
 	}
 
