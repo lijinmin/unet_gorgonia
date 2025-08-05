@@ -61,7 +61,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	solver := G.NewRMSPropSolver(G.WithBatchSize(float64(bs)))
 	defer vm.Close()
 
-	totalSet := utils.NewDataset("./data/imgs", "/data/masks", "_mask.gif", 1.0)
+	totalSet := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", 1.0)
 	trainSet, _ := utils.RandomSplit(*totalSet, 0.1)
 
 	batches := len(trainSet.IDs) / bs
@@ -75,9 +75,12 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 		bar.Start()
 		utils.Shuffle(trainSet.IDs) // 打乱训练的图片顺序
 
+		go utils.LoadImages(trainSet, 1)
+
 		for b := 0; b < batches; b++ {
 			var xVal, yVal tensor.Tensor
 			a := <-utils.TrainChannel
+			log.Debug(a.Inputs.Shape(), a.Masks.Shape())
 			xVal = a.Inputs
 			yVal = a.Masks
 			G.Let(input, xVal)

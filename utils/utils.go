@@ -2,9 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"github.com/ngaut/log"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
-	"log"
 	"math/rand"
 	"time"
 )
@@ -131,10 +131,11 @@ type TrainData struct {
 }
 
 var (
-	TrainChannel = make(chan TrainData, 100)
+	TrainChannel = make(chan TrainData, 10)
 )
 
 func LoadImages(setData *BasicDataset, bs int) {
+	log.Debug("loading images...")
 	var err error
 
 	IDs := setData.IDs
@@ -159,5 +160,6 @@ func LoadImages(setData *BasicDataset, bs int) {
 		TrainChannel <- data
 
 	}
+	log.Debug("loading images done!")
 
 }
