@@ -63,7 +63,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	defer vm.Close()
 
 	totalSet := utils.NewDataset("./data/imgs", "/data/masks", "_mask.gif", 1.0)
-	trainSet, valSet := utils.RandomSplit(*totalSet, 0.1)
+	trainSet, _ := utils.RandomSplit(*totalSet, 0.1)
 
 	batches := numExamples / bs
 	log.Debugf("Batches %d", batches)
@@ -74,11 +74,24 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 		bar.Prefix(fmt.Sprintf("Epoch %d", i))
 		bar.Set(0)
 		bar.Start()
+		utils.Shuffle(trainSet.IDs) // 打乱训练的图片顺序
 
-		for i := 0; i < batches; i++ {
+		for b := 0; b < batches; b++ {
+			var xVal, yVal tensor.Tensor
+			a := <-utils.TrainChannel
+			xVal = a.Inputs
+			yVal = a.Masks
+			G.Let(input, xVal)
+			G.Let(mask, yVal)
+			if err = vm.RunAll(); err != nil {
+				log.Fatalf("Failed at epoch  %d, batch %d. Error: %v", i, b, err)
+			}
 			solver.Step(G.NodesToValueGrads(n.Learnables()))
 			vm.Reset()
 			bar.Increment()
+			if i%50 == 0 {
+				log.Debug("current loss is ", costVal)
+			}
 		}
 		time.Sleep(1 * time.Second)
 	}

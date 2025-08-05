@@ -121,3 +121,16 @@ func RandomSplit(dataSet BasicDataset, valPercent float64) (trainSet *BasicDatas
 
 	return
 }
+
+type TrainData struct {
+	Inputs tensor.Tensor
+	Masks  tensor.Tensor
+}
+
+var (
+	TrainChannel = make(chan TrainData, 100)
+)
+
+func LoadImages(ids []string, bs int) {
+
+}
