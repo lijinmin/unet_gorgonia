@@ -90,7 +90,13 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 		channel1 := []float64{}
 		channel2 := []float64{}
 		for i := 0; i < rect.Max.Y; i++ {
+			if i%2 == 1 {
+				continue
+			}
 			for j := 0; j < rect.Max.X; j++ {
+				if j%2 == 1 {
+					continue
+				}
 				x1, _, _, _ := img.At(j, i).RGBA()
 				if x1 == 0 {
 					channel1 = append(channel1, 1)
@@ -102,7 +108,7 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 			}
 		}
 		valData := append(channel1, channel2...)
-		val = tensor.New(tensor.WithShape(1, 2, rect.Max.Y, rect.Max.X), tensor.WithBacking(valData))
+		val = tensor.New(tensor.WithShape(1, 2, rect.Max.Y/2, rect.Max.X/2), tensor.WithBacking(valData))
 
 	} else {
 
@@ -110,7 +116,13 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 		channel2 := []float64{}
 		channel3 := []float64{}
 		for i := 0; i < rect.Max.Y; i++ {
+			if i%2 == 1 {
+				continue
+			}
 			for j := 0; j < rect.Max.X; j++ {
+				if j%2 == 1 {
+					continue
+				}
 				x1, x2, x3, a := img.At(j, i).RGBA()
 				channel1 = append(channel1, float64(x1)/float64(a))
 				channel2 = append(channel2, float64(x2)/float64(a))
@@ -119,7 +131,7 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 		}
 		valData := append(channel1, channel2...)
 		valData = append(valData, channel3...)
-		val = tensor.New(tensor.WithShape(1, 3, rect.Max.Y, rect.Max.X), tensor.WithBacking(valData))
+		val = tensor.New(tensor.WithShape(1, 3, rect.Max.Y/2, rect.Max.X/2), tensor.WithBacking(valData))
 	}
 	return
 
