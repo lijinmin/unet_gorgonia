@@ -131,7 +131,7 @@ type TrainData struct {
 }
 
 var (
-	TrainChannel = make(chan TrainData, 10)
+	TrainChannel = make(chan TrainData, 2)
 )
 
 func LoadImages(setData *BasicDataset, bs int) {
