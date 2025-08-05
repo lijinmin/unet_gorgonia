@@ -41,7 +41,7 @@ func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicData
 			if len(id) != 0 {
 				ids = append(ids, id)
 				if imageSiffix == "" {
-					imageSiffix = strings.TrimSpace(strings.Split(s, ".")[1])
+					imageSiffix = "." + strings.TrimSpace(strings.Split(s, ".")[1])
 				}
 			}
 

@@ -6,10 +6,12 @@ import (
 )
 
 func TestDataLoading(t *testing.T) {
-	d := utils.NewDataset("./data/imgs", "/data/masks", "_mask.gif", 1.0)
+	d := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", 1.0)
 
-	trainSet, valSet := utils.RandomSplit(*d, 0.1)
-	t.Log(len(d.IDs), len(trainSet.IDs), valSet.IDs)
-	utils.Shuffle(valSet.IDs)
-	t.Log(valSet.IDs)
+	_, valSet := utils.RandomSplit(*d, 0.01)
+	utils.LoadImages(valSet, 2)
+	a := <-utils.TrainChannel
+	t.Log(a.Inputs.Data(), a.Inputs.Shape())
+	t.Log(a.Masks.Data(), a.Masks.Shape())
+
 }

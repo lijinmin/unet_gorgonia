@@ -134,17 +134,17 @@ var (
 	TrainChannel = make(chan TrainData, 100)
 )
 
-func LoadImages(trainData *BasicDataset, bs int) {
+func LoadImages(setData *BasicDataset, bs int) {
 	var err error
 
-	IDs := trainData.IDs
+	IDs := setData.IDs
 	batches := len(IDs) / bs
 	for i := 0; i < batches; i++ {
 		data := TrainData{}
 		for j := 0; j < bs; j++ {
 			index := i*bs + j
 			id := IDs[index]
-			inputsTensor, maskTensor := trainData.getitem(id)
+			inputsTensor, maskTensor := setData.getitem(id)
 			if data.Inputs == nil {
 				data.Inputs = inputsTensor
 				data.Masks = maskTensor
