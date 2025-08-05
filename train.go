@@ -13,7 +13,6 @@ import (
 )
 
 func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
-	numExamples := 1000
 	rand.Seed(1337)
 	dt := tensor.Float64
 	g := G.NewGraph()
@@ -65,7 +64,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	totalSet := utils.NewDataset("./data/imgs", "/data/masks", "_mask.gif", 1.0)
 	trainSet, _ := utils.RandomSplit(*totalSet, 0.1)
 
-	batches := numExamples / bs
+	batches := len(trainSet.IDs) / bs
 	log.Debugf("Batches %d", batches)
 	bar := pb.New(batches)
 	bar.SetRefreshRate(time.Second)
