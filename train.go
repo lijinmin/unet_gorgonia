@@ -33,8 +33,12 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 		log.Fatal(err)
 	}
 	cost1 := G.Must(G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))), 1, 2, 3))))
+	var cost1Val G.Value
+	G.Read(cost1, &cost1Val)
 
 	cost2 := diceLoss(out2, mask)
+	var cost2Val G.Value
+	G.Read(cost2, &cost2Val)
 	log.Debug(cost1.Shape(), cost2.Shape())
 
 	weight := 0.5
@@ -95,7 +99,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 			bar.Increment()
 			if b%10 == 0 {
 				nowTs := time.Now().Unix()
-				log.Debug("current loss is ", costVal, "time cost:", nowTs-startTs, "total_picture:", b)
+				log.Debug("total loss:", costVal, "cost1:", cost1Val, "cost2:", cost2Val, "time cost:", nowTs-startTs, "total_picture:", b)
 			}
 		}
 		time.Sleep(1 * time.Second)
