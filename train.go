@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/ngaut/log"
 	pb "gopkg.in/cheggaaa/pb.v1"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
 	"math/rand"
+	"os"
 	"time"
 	"unet_gorgonia/unet"
 	"unet_gorgonia/utils"
@@ -100,10 +102,30 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 			if b%10 == 0 {
 				nowTs := time.Now().Unix()
 				log.Debug("total loss:", costVal, "cost1:", cost1Val, "cost2:", cost2Val, "time cost:", nowTs-startTs, "total_picture:", b)
+				save(n.Learnables(), "mnist.bin")
 			}
 		}
+		save(n.Learnables(), "unet_gorgonia.bin")
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func save(nodes G.Nodes, fileName string) error {
+	f, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	enc := gob.NewEncoder(f)
+	values := []G.Value{}
+	for _, node := range nodes {
+		values = append(values, node.Value())
+	}
+	err = enc.Encode(values)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func diceLoss(input, target *G.Node) *G.Node {
