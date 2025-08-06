@@ -3,3 +3,4 @@ data/marks/*
 data/*
 vendor/*
 unet_gorgonia
+unet_gorgonia.bin

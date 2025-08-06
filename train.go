@@ -102,7 +102,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 			if b%10 == 0 {
 				nowTs := time.Now().Unix()
 				log.Debug("total loss:", costVal, "cost1:", cost1Val, "cost2:", cost2Val, "time cost:", nowTs-startTs, "total_picture:", b)
-				save(n.Learnables(), "mnist.bin")
+				save(n.Learnables(), "unet_gorgonia.bin")
 			}
 		}
 		save(n.Learnables(), "unet_gorgonia.bin")
