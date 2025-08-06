@@ -60,6 +60,7 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 	for j := 0; j < dims; j++ {
 		ss[j] = G.S(0, shape[j])
 	}
+	flag := false
 
 	for i := 0; i < 4; i++ {
 		if formPadding[i] >= 0 {
@@ -68,14 +69,18 @@ func Pad(g *G.ExprGraph, input *G.Node, padding []int, mode string) (*G.Node, er
 		dim := dims - 1 - i/2 // 维度
 		if i%2 == 0 {
 			ss[dim] = G.S(-1*formPadding[i], shape[dim])
+			flag = true
 		} else {
 			ss[dim] = G.S(0, shape[dim]+formPadding[i])
+			flag = true
 		}
 		shape[dim] = shape[dim] + formPadding[i]
 
 	}
-	result, _ = G.Slice(result, ss...)
-	result = G.Must(G.Reshape(result, shape))
+	if flag {
+		result, _ = G.Slice(result, ss...)
+		result = G.Must(G.Reshape(result, shape))
+	}
 
 	return result, nil
 }

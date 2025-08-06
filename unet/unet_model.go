@@ -166,11 +166,12 @@ func (n *inc) forward(x *G.Node) (*G.Node, error) {
 }
 
 func (d *down) forward(x *G.Node) (*G.Node, error) {
-	retVal, err := G.MaxPool2D(x, tensor.Shape{d.maxPool2D.kernelSize, d.maxPool2D.kernelSize}, []int{0, 0}, []int{d.maxPool2D.stride, d.maxPool2D.stride})
-	if err != nil {
-		return retVal, err
-	}
-	retVal1, err := DoubleConv(retVal, d.doubleConv)
+	//retVal, err := G.MaxPool2D(x, tensor.Shape{d.maxPool2D.kernelSize, d.maxPool2D.kernelSize}, []int{0, 0}, []int{d.maxPool2D.stride, d.maxPool2D.stride})
+	//if err != nil {
+	//	return retVal, err
+	//}
+	//retVal1, err := DoubleConv(retVal, d.doubleConv)
+	retVal1, err := DoubleConv(G.Must(G.MaxPool2D(x, tensor.Shape{d.maxPool2D.kernelSize, d.maxPool2D.kernelSize}, []int{0, 0}, []int{d.maxPool2D.stride, d.maxPool2D.stride})), d.doubleConv)
 	return retVal1, err
 }
 func (u *down) learnables() G.Nodes {
@@ -185,13 +186,14 @@ func (u *up) learnables() G.Nodes {
 }
 
 func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
-	retVal0, err := G.Upsample2D(x1, 2) // 需调整
-	if err != nil {
-		log.Fatal(err)
-		return retVal0, err
-	}
+	//retVal0, err := G.Upsample2D(x1, 2) // 需调整
+	//if err != nil {
+	//	log.Fatal(err)
+	//	return retVal0, err
+	//}
 	//log.Debug(retVal0.Shape())
-	retVal1, err := G.Conv2d(retVal0, u.filter, tensor.Shape{2, 2}, []int{0, 0}, []int{2, 2}, []int{1, 1})
+	//retVal1, err := G.Conv2d(retVal0, u.filter, tensor.Shape{2, 2}, []int{0, 0}, []int{2, 2}, []int{1, 1})
+	retVal1, err := G.Conv2d(G.Must(G.Upsample2D(x1, 2)), u.filter, tensor.Shape{2, 2}, []int{0, 0}, []int{2, 2}, []int{1, 1})
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -206,14 +208,15 @@ func (u *up) forward(x1, x2 *G.Node) (*G.Node, error) {
 
 	}
 	//log.Debug(retVal2.Shape())
-	retVal3, err := G.Concat(1, x2, retVal2)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
+	//retVal3, err := G.Concat(1, x2, retVal2)
+	//if err != nil {
+	//	log.Fatal(err)
+	//	return nil, err
+	//}
 	//log.Debug(retVal3.Shape())
 
-	retVal4, err := DoubleConv(retVal3, u.doubleConv)
+	//retVal4, err := DoubleConv(retVal3, u.doubleConv)
+	retVal4, err := DoubleConv(G.Must(G.Concat(1, x2, retVal2)), u.doubleConv)
 	//log.Debug(retVal4.Shape())
 	return retVal4, err
 

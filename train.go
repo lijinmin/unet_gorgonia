@@ -88,6 +88,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 			if err = vm.RunAll(); err != nil {
 				log.Fatalf("Failed at epoch  %d, batch %d. Error: %v", i, b, err)
 			}
+			log.Debug("lllll")
 			solver.Step(G.NodesToValueGrads(n.Learnables()))
 			vm.Reset()
 			bar.Increment()
@@ -101,15 +102,15 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 
 func diceLoss(input, target *G.Node) *G.Node {
 	epsilon := G.NewConstant(1e-6)
-	a := G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3))
-	b := G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3))))
+	//a := G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3))
+	//b := G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3))))
 	//log.Debug(a.Shape(), b.Shape())
 	//loss := G.Must(G.HadamardDiv(G.Must(G.Sub(G.Must(G.Add(b, epsilon)), G.Must(G.Add(a, epsilon)))), G.Must(G.Add(b, epsilon))))
-	dice := G.Must(G.HadamardDiv(G.Must(G.Add(a, epsilon)), G.Must(G.Add(b, epsilon))))
+	//dice := G.Must(G.HadamardDiv(G.Must(G.Add(a, epsilon)), G.Must(G.Add(b, epsilon))))
+	dice := G.Must(G.HadamardDiv(G.Must(G.Add(G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3)), epsilon)), G.Must(G.Add(G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3)))), epsilon))))
 	//log.Debug(loss.Shape())
 	dice = G.Must(G.Mul(G.NewConstant(2.0), dice))
 
 	loss := G.Must(G.Sub(G.NewConstant(1.0), dice))
-
 	return loss
 }

@@ -1,30 +1,31 @@
 package unet
 
 import (
-	"github.com/pkg/errors"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
 )
 
 func DoubleConv(x *G.Node, dc *doubleConv) (*G.Node, error) {
-	retVal1, err := G.Conv2d(x, dc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
-	if err != nil {
-		errors.Wrap(err, "DoubleConv 1 Convolution failed")
-	}
-	retVal2, _, err := BatchNorm(retVal1, dc.batchNorm1)
+	//retVal1, err := G.Conv2d(x, dc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
+	//if err != nil {
+	//	errors.Wrap(err, "DoubleConv 1 Convolution failed")
+	//}
+	//retVal2, _, err := BatchNorm(retVal1, dc.batchNorm1)
+	retVal2, _, err := BatchNorm(G.Must(G.Conv2d(x, dc.conv1, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})), dc.batchNorm1)
 	if err != nil {
 		return retVal2, err
 	}
-	retVal3, err := G.Rectify(retVal2)
-	if err != nil {
-		return retVal3, err
-	}
+	//retVal3, err := G.Rectify(retVal2)
+	//if err != nil {
+	//	return retVal3, err
+	//}
 
-	retVal4, err := G.Conv2d(retVal3, dc.conv2, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
-	if err != nil {
-		return retVal4, err
-	}
-	retVal5, _, err := BatchNorm(retVal4, dc.batchNorm2)
+	//retVal4, err := G.Conv2d(retVal3, dc.conv2, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})
+	//if err != nil {
+	//	return retVal4, err
+	//}
+	//retVal5, _, err := BatchNorm(retVal4, dc.batchNorm2)
+	retVal5, _, err := BatchNorm(G.Must(G.Conv2d(G.Must(G.Rectify(retVal2)), dc.conv2, tensor.Shape{3, 3}, []int{1, 1}, []int{1, 1}, []int{1, 1})), dc.batchNorm2)
 	if err != nil {
 		return retVal5, err
 	}
