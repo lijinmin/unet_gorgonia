@@ -13,18 +13,19 @@ import (
 )
 
 func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
+	scale := 10
 	rand.Seed(1337)
 	dt := tensor.Float64
 	g := G.NewGraph()
 	n := unet.NewUnet(g, n_channels, n_classes, false, dt)
-	input := G.NewTensor(g, dt, 4, G.WithShape(bs, n_channels, 640, 959), G.WithName("input"))
+	input := G.NewTensor(g, dt, 4, G.WithShape(bs, n_channels, int(1280/scale+1), int(1918/scale+1)), G.WithName("input"))
 
 	out, err := n.Forward(input)
 	if err != nil {
 		log.Fatal(err)
 	}
 	//mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 2, 640, 959), G.WithName("mask"))
-	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, n_classes, 640, 959), G.WithName("mask"))
+	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, n_classes, int(1280/scale+1), int(1918/scale+1)), G.WithName("mask"))
 
 	//获取损失函数
 	out2, err := G.SoftMax(out, 1)
@@ -61,7 +62,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	solver := G.NewRMSPropSolver(G.WithBatchSize(float64(bs)))
 	defer vm.Close()
 
-	totalSet := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", 1.0)
+	totalSet := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", scale)
 	trainSet, _ := utils.RandomSplit(*totalSet, 0.1)
 
 	batches := len(trainSet.IDs) / bs
@@ -77,10 +78,11 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 
 		go utils.LoadImages(trainSet, 1)
 
+		startTs := time.Now().Unix()
 		for b := 0; b < batches; b++ {
 			var xVal, yVal tensor.Tensor
 			a := <-utils.TrainChannel
-			log.Debug(a.Inputs.Shape(), a.Masks.Shape())
+			//log.Debug(a.Inputs.Shape(), a.Masks.Shape())
 			xVal = a.Inputs
 			yVal = a.Masks
 			G.Let(input, xVal)
@@ -88,12 +90,12 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 			if err = vm.RunAll(); err != nil {
 				log.Fatalf("Failed at epoch  %d, batch %d. Error: %v", i, b, err)
 			}
-			log.Debug("lllll")
 			solver.Step(G.NodesToValueGrads(n.Learnables()))
 			vm.Reset()
 			bar.Increment()
-			if i%50 == 0 {
-				log.Debug("current loss is ", costVal)
+			if b%10 == 0 {
+				nowTs := time.Now().Unix()
+				log.Debug("current loss is ", costVal, "time cost:", nowTs-startTs, "total_picture:", b)
 			}
 		}
 		time.Sleep(1 * time.Second)

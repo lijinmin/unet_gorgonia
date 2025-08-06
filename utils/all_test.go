@@ -419,8 +419,8 @@ func TestLoadImage(t *testing.T) {
 		for j := minPoint.Y; j < maxPoint.Y; j++ {
 			img.At(i, j)
 			if flag {
-				r, g, b, a := img.At(i, j).RGBA()
-				t.Log(img.At(i, j), r, g, b, a)
+				r, g, b, a := img.At(1918, 1280).RGBA()
+				t.Log(img.At(0, 0), r, g, b, a)
 				flag = false
 			}
 		}

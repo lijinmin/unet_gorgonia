@@ -18,15 +18,15 @@ type BasicDataset struct {
 	IDs         []string
 	imagesDir   string
 	maskDir     string
-	Scale       float64
+	Scale       int
 	maskSuffix  string
 	imageSiffix string
 	maskValues  []string
 }
 
-func NewDataset(imagesDir, maskDir, maskSuffix string, scale float64) *BasicDataset {
-	if scale <= 0 || scale > 1 {
-		log.Fatal("scale must be between 0 and 1")
+func NewDataset(imagesDir, maskDir, maskSuffix string, scale int) *BasicDataset {
+	if scale < 1 {
+		log.Fatal("scale must be >= 1")
 	}
 
 	ids := []string{}
@@ -89,12 +89,12 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 	if label == "mask" {
 		channel1 := []float64{}
 		channel2 := []float64{}
-		for i := 0; i < rect.Max.Y; i++ {
-			if i%2 == 1 {
+		for i := 0; i <= rect.Max.Y; i++ {
+			if i%data.Scale != 0 {
 				continue
 			}
-			for j := 0; j < rect.Max.X; j++ {
-				if j%2 == 1 {
+			for j := 0; j <= rect.Max.X; j++ {
+				if j%data.Scale != 0 {
 					continue
 				}
 				x1, _, _, _ := img.At(j, i).RGBA()
@@ -108,30 +108,38 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 			}
 		}
 		valData := append(channel1, channel2...)
-		val = tensor.New(tensor.WithShape(1, 2, rect.Max.Y/2, rect.Max.X/2), tensor.WithBacking(valData))
+		val = tensor.New(tensor.WithShape(1, 2, (rect.Max.Y/data.Scale+1), (rect.Max.X/data.Scale+1)), tensor.WithBacking(valData))
 
 	} else {
 
 		channel1 := []float64{}
 		channel2 := []float64{}
 		channel3 := []float64{}
-		for i := 0; i < rect.Max.Y; i++ {
-			if i%2 == 1 {
+		//ii, jj := 0, 0
+		for i := 0; i <= rect.Max.Y; i++ {
+			if i%data.Scale != 0 {
 				continue
 			}
-			for j := 0; j < rect.Max.X; j++ {
-				if j%2 == 1 {
+			//ii += 1
+			//jj = 0
+			for j := 0; j <= rect.Max.X; j++ {
+				if j%data.Scale != 0 {
 					continue
 				}
+				//jj += 1
+				//if jj == 192 {
+				//	log.Debug(j, data.Scale)
+				//}
 				x1, x2, x3, a := img.At(j, i).RGBA()
 				channel1 = append(channel1, float64(x1)/float64(a))
 				channel2 = append(channel2, float64(x2)/float64(a))
 				channel3 = append(channel3, float64(x3)/float64(a))
 			}
 		}
+		//log.Debug(ii, jj)
 		valData := append(channel1, channel2...)
 		valData = append(valData, channel3...)
-		val = tensor.New(tensor.WithShape(1, 3, rect.Max.Y/2, rect.Max.X/2), tensor.WithBacking(valData))
+		val = tensor.New(tensor.WithShape(1, 3, (rect.Max.Y/data.Scale+1), (rect.Max.X/data.Scale+1)), tensor.WithBacking(valData))
 	}
 	return
 
