@@ -4,3 +4,4 @@ data/*
 vendor/*
 unet_gorgonia
 unet_gorgonia.bin
+test.txt

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 	"unet_gorgonia/utils"
 )
@@ -14,4 +15,13 @@ func TestDataLoading(t *testing.T) {
 	t.Log(a.Inputs.Data(), a.Inputs.Shape())
 	t.Log(a.Masks.Data(), a.Masks.Shape())
 
+}
+
+func TestFile(t *testing.T) {
+	f, err := os.Create("test.txt")
+	defer f.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.WriteString("world")
 }
