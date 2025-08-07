@@ -5,3 +5,5 @@ vendor/*
 unet_gorgonia
 unet_gorgonia.bin
 test.txt
+image*.png
+mask*.png
