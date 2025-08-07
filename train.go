@@ -26,30 +26,32 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 2, 640, 959), G.WithName("mask"))
-	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, n_classes, int(1280/scale+1), int(1918/scale+1)), G.WithName("mask"))
 
+	outMax := G.Must(G.Reshape(G.Must(G.Max(out, 1)), tensor.Shape{bs, 1, int(1280/scale + 1), int(1918/scale + 1)}))
+	out1 := G.Must(G.Sub(out, G.Must(G.Concat(1, outMax, outMax))))
+	////mask := G.NewTensor(g, dt, 4, G.WithShape(bs, 2, 640, 959), G.WithName("mask"))
+	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, n_classes, int(1280/scale+1), int(1918/scale+1)), G.WithName("mask"))
 	//获取损失函数
-	out2, err := G.SoftMax(out, 1)
+	out2, err := G.SoftMax(out1, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
-	cost1 := G.Must(G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))), 1, 2, 3))))
+	cost1 := G.Must(G.Neg(G.Must(G.Sum(G.Must(G.HadamardProd(mask, G.Must(G.Log2(out2)))), 1, 2, 3)))) // log and softmax can not use together
 	var cost1Val G.Value
 	G.Read(cost1, &cost1Val)
 
 	cost2 := diceLoss(out2, mask)
 	var cost2Val G.Value
 	G.Read(cost2, &cost2Val)
-	log.Debug(cost1.Shape(), cost2.Shape())
+	//log.Debug(cost1.Shape(), cost2.Shape())
 
-	weight := 0.5
+	weight := 0.8
 	alpha := G.NewConstant(weight)
 	totalCost := G.Must(G.Mean(G.Must(G.Add(
 		G.Must(G.Mul(alpha, cost1)),
 		G.Must(G.Mul(G.NewConstant(1.0-weight), cost2)),
 	))))
-	//totalCost := G.Must(G.Mean(cost2))
+	//totalCost := G.Must(G.Mean(cost1))
 	//log.Debug(totalCost.Shape())
 
 	var costVal G.Value
@@ -82,7 +84,7 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 		bar.Start()
 		utils.Shuffle(trainSet.IDs) // 打乱训练的图片顺序
 
-		go utils.LoadImages(trainSet, 1)
+		go utils.LoadImages(trainSet, bs)
 
 		startTs := time.Now().Unix()
 		for b := 0; b < batches; b++ {
@@ -101,8 +103,9 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 			bar.Increment()
 			if b%10 == 0 {
 				nowTs := time.Now().Unix()
-				log.Debug("total loss:", costVal, "cost1:", cost1Val, "cost2:", cost2Val, "time cost:", nowTs-startTs, "total_picture:", b)
+				log.Debug("total loss:", costVal, "cost1:", cost1Val, "cost2:", cost2Val, "time cost:", nowTs-startTs, "total_picture:", b*bs)
 				save(n.Learnables(), "unet_gorgonia.bin")
+				//log.Debug(out2.Value())
 			}
 		}
 		save(n.Learnables(), "unet_gorgonia.bin")
@@ -130,14 +133,14 @@ func save(nodes G.Nodes, fileName string) error {
 
 func diceLoss(input, target *G.Node) *G.Node {
 	epsilon := G.NewConstant(1e-6)
-	//a := G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3))
-	//b := G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3))))
+	a := G.Must(G.Mul(G.NewConstant(2.0), G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3))))
+	b := G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3))))
 	//log.Debug(a.Shape(), b.Shape())
 	//loss := G.Must(G.HadamardDiv(G.Must(G.Sub(G.Must(G.Add(b, epsilon)), G.Must(G.Add(a, epsilon)))), G.Must(G.Add(b, epsilon))))
-	//dice := G.Must(G.HadamardDiv(G.Must(G.Add(a, epsilon)), G.Must(G.Add(b, epsilon))))
-	dice := G.Must(G.HadamardDiv(G.Must(G.Add(G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3)), epsilon)), G.Must(G.Add(G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3)))), epsilon))))
+	dice := G.Must(G.HadamardDiv(G.Must(G.Add(a, epsilon)), G.Must(G.Add(b, epsilon))))
+	//dice := G.Must(G.HadamardDiv(G.Must(G.Add(G.Must(G.Sum(G.Must(G.HadamardProd(input, target)), 1, 2, 3)), epsilon)), G.Must(G.Add(G.Must(G.Add(G.Must(G.Sum(input, 1, 2, 3)), G.Must(G.Sum(target, 1, 2, 3)))), epsilon))))
 	//log.Debug(loss.Shape())
-	dice = G.Must(G.Mul(G.NewConstant(2.0), dice))
+	//dice = G.Must(G.Mul(G.NewConstant(2.0), dice))
 
 	loss := G.Must(G.Sub(G.NewConstant(1.0), dice))
 	return loss
