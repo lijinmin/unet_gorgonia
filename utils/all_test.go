@@ -48,7 +48,7 @@ func TestSoftMax(t *testing.T) {
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal))
 	z := G.Must(G.SoftMax(x, 1))
 
-	d, err := G.Log2(z)
+	d, err := G.Log(z)
 	if err != nil {
 		t.Log(err)
 	}
