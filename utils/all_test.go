@@ -394,6 +394,62 @@ func TestMax(t *testing.T) {
 	t.Log(y1out.Value(), y1out.Shape())
 }
 
+func TestLeakyRelu(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{1, 2, 45, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 23, 12, 7, 8, 9, 10, 11, 12}
+	xVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(xData)) //
+	//t.Log(xVal)
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
+
+	zz := G.Must(G.Reshape(G.Must(G.Max(x, 1)), tensor.Shape{1, 1, 3, 4}))
+	dd := G.Must(G.Concat(1, zz, zz))
+
+	y := G.Must(G.Sub(x, dd))
+
+	yout := G.Must(G.Exp(y))
+	y1out := G.Must(G.LeakyRelu(yout, 1)) //
+	vm := G.NewTapeMachine(g)
+
+	defer vm.Close()
+
+	vm.RunAll()
+	t.Log("\n", x.Value())
+	t.Log(zz.Value())
+	t.Log(zz.Shape())
+	t.Log(dd.Value(), dd.Shape())
+	t.Log(y.Value())
+	t.Log(yout.Value(), yout.Shape())
+	t.Log(y1out.Value(), y1out.Shape())
+}
+func TestGte(t *testing.T) {
+	g := G.NewGraph()
+	xData := []float64{1, 2, 45, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 23, 12, 7, 8, 9, 10, 11, 12}
+	xVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(xData)) //
+	//t.Log(xVal)
+	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
+
+	zz := G.Must(G.Reshape(G.Must(G.Max(x, 1)), tensor.Shape{1, 1, 3, 4}))
+	dd := G.Must(G.Concat(1, zz, zz))
+
+	y := G.Must(G.Sub(x, dd))
+
+	yout := G.Must(G.Exp(y))
+	a := G.NewConstant(1.0)
+	y1out := G.Must(G.Gte(yout, a, true)) //
+	vm := G.NewTapeMachine(g)
+
+	defer vm.Close()
+
+	vm.RunAll()
+	t.Log("\n", x.Value())
+	t.Log(zz.Value())
+	t.Log(zz.Shape())
+	t.Log(dd.Value(), dd.Shape())
+	t.Log(y.Value())
+	t.Log(yout.Value(), yout.Shape())
+	t.Log(y1out.Value(), y1out.Shape())
+}
+
 func TestGrad(t *testing.T) {
 	g := G.NewGraph()
 	xData := []float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}

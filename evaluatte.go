@@ -33,6 +33,7 @@ func evaluate(n_channels, n_classes int, bs int) {
 	outMax := G.Must(G.Reshape(G.Must(G.Max(out, 1)), tensor.Shape{bs, 1, int(1280/scale + 1), int(1918/scale + 1)}))
 	out1 := G.Must(G.Sub(out, G.Must(G.Concat(1, outMax, outMax))))
 
+	//G.LeakyRelu()
 	preMask := G.Must(G.Rectify(out1))
 	var preMaskVal G.Value
 	G.Read(preMask, &preMaskVal)
@@ -82,7 +83,7 @@ func evaluate(n_channels, n_classes int, bs int) {
 
 func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
 	log.Debug(mask.Shape(), preMask.Shape())
-	log.Debug(mask.Data(), preMask.Data())
+	log.Debug(preMask.Data())
 	data := img.Data().([]float64)
 	dataMask := mask.Data().([]float64)
 
