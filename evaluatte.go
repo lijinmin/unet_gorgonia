@@ -23,6 +23,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 	dt := tensor.Float64
 	g := G.NewGraph()
 	n := unet.NewUnetFronValues(g, n_channels, n_classes, filename, dt) //
+	//n := unet.NewUnet(g, n_channels, n_classes, false, dt)
 	input := G.NewTensor(g, dt, 4, G.WithShape(bs, n_channels, int(1280/scale+1), int(1918/scale+1)), G.WithName("input"))
 
 	out, err := n.Forward(input)
@@ -31,7 +32,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 	}
 
 	outMax := G.Must(G.Reshape(G.Must(G.Max(out, 1)), tensor.Shape{bs, 1, int(1280/scale + 1), int(1918/scale + 1)}))
-	preMask := G.Must(G.Lt(out, G.Must(G.Concat(1, outMax, outMax)), true)) // 输出值最大的地方取1，其余取0
+	preMask := G.Must(G.Gte(out, G.Must(G.Concat(1, outMax, outMax)), true)) // 输出值最大的地方取1，其余取0
 
 	var preMaskVal G.Value
 	G.Read(preMask, &preMaskVal)
