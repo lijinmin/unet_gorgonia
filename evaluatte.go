@@ -80,15 +80,17 @@ func evaluate(n_channels, n_classes int, bs int) {
 }
 
 func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
-	log.Debug(mask.Shape(), preMask.Shape())
-	log.Debug(preMask.Data())
+	//log.Debug(mask.Shape(), preMask.Shape())
+	//log.Debug(preMask.Data())
 	data := img.Data().([]float64)
 	dataMask := mask.Data().([]float64)
+	dataPreMask := preMask.Data().([]float64)
 
 	imageShape := mask.Shape()
 
 	oriImg := image.NewNRGBA64(image.Rect(0, 0, imageShape[3], imageShape[2]))
 	imgMask := image.NewRGBA(image.Rect(0, 0, imageShape[3], imageShape[2]))
+	imgPreMask := image.NewRGBA(image.Rect(0, 0, imageShape[3], imageShape[2]))
 	for ii := 0; ii < imageShape[2]; ii++ {
 		for jj := 0; jj < imageShape[3]; jj++ {
 
@@ -105,6 +107,13 @@ func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
 
 			imgMask.Set(jj, ii, color.RGBA{r1, g2, b3, a2})
 
+			r2 := uint8(dataPreMask[jj+ii*imageShape[3]] * 255)
+			g3 := uint8(dataPreMask[jj+ii*imageShape[3]] * 255)
+			b4 := uint8(dataPreMask[jj+ii*imageShape[3]] * 255)
+			a3 := uint8(255)
+
+			imgPreMask.Set(jj, ii, color.RGBA{r2, g3, b4, a3})
+
 		}
 	}
 
@@ -115,4 +124,8 @@ func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
 	f2, _ := os.Create(fmt.Sprintf("./evaluation/mask%d.png", index))
 	defer f2.Close()
 	png.Encode(f2, imgMask)
+
+	f3, _ := os.Create(fmt.Sprintf("./evaluation/pre_mask%d.png", index))
+	defer f3.Close()
+	png.Encode(f3, imgPreMask)
 }
