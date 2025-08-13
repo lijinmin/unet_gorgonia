@@ -16,13 +16,13 @@ import (
 	"unet_gorgonia/utils"
 )
 
-func evaluate(n_channels, n_classes int, bs int) {
+func evaluate(n_channels, n_classes int, bs int, filename string) {
 	G.EvalMode()
 	scale := 10
 	rand.Seed(1337)
 	dt := tensor.Float64
 	g := G.NewGraph()
-	n := unet.NewUnet(g, n_channels, n_classes, false, dt) //
+	n := unet.NewUnetFronValues(g, n_channels, n_classes, filename, dt) //
 	input := G.NewTensor(g, dt, 4, G.WithShape(bs, n_channels, int(1280/scale+1), int(1918/scale+1)), G.WithName("input"))
 
 	out, err := n.Forward(input)
