@@ -74,7 +74,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 		vm.Reset()
 		bar.Increment()
 
-		break
+		//break
 
 	}
 }
