@@ -1,10 +1,12 @@
 package unet
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/ngaut/log"
 	G "gorgonia.org/gorgonia"
 	"gorgonia.org/tensor"
+	"os"
 	"unet_gorgonia/utils"
 )
 
@@ -34,6 +36,44 @@ func (u *Unet) Learnables() G.Nodes {
 	nodes = append(nodes, u.outc.learnables()...)
 	//nodes = append(nodes, u.LearnablesTest()...)
 	return nodes
+}
+
+func NewUnetFronValues(g *G.ExprGraph, n_channels, n_classes int, fileName string, dt tensor.Dtype) *Unet {
+	if n_channels == 0 {
+		n_channels = 3
+	}
+	if n_classes == 0 {
+		n_classes = 1
+	}
+
+	f, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	values := []G.Value{}
+	err = gob.NewDecoder(f).Decode(&values)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return &Unet{
+		g:          g,
+		dt:         dt,
+		n_channels: n_channels,
+		n_classes:  n_classes,
+		inc: &inc{
+			doubleConv: newDoubleConvFromValues(g, values[52:58]),
+		},
+		down1: newDownFromValues(g, values[28:34]),
+		down2: newDownFromValues(g, values[34:40]),
+		down3: newDownFromValues(g, values[40:46]),
+		down4: newDownFromValues(g, values[46:52]),
+		up1:   newUpFromValues(g, 2, values[0:7]),
+		up2:   newUpFromValues(g, 2, values[7:14]),
+		up3:   newUpFromValues(g, 2, values[14:21]),
+		up4:   newUpFromValues(g, 2, values[21:28]),
+		outc:  newDoubleConvFromValues(g, values[58:64]),
+	}
 }
 
 func (u *Unet) LearnablesTest() G.Nodes {
@@ -125,12 +165,33 @@ func newDown(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, output
 	}
 }
 
+func newDownFromValues(g *G.ExprGraph, nodesValues []G.Value) *down {
+	return &down{
+		doubleConv: newDoubleConvFromValues(g, nodesValues),
+		maxPool2D: struct {
+			kernelSize int
+			stride     int
+			padding    int
+			dilation   int
+		}{kernelSize: 2, stride: 2, padding: 0, dilation: 1},
+	}
+}
+
 func newUp(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, outputChannels, scale int, label string) *up {
 	return &up{
 		g:               g,
 		upsample2DScale: scale,
 		doubleConv:      newDoubleConv(g, dt, inputChannels, midChannels, outputChannels, label),
 		filter:          G.NewTensor(g, dt, 4, G.WithShape(outputChannels, inputChannels, 2, 2), G.WithName(fmt.Sprintf("%s_filter", label)), G.WithInit(G.GlorotN(1.0))),
+	}
+}
+
+func newUpFromValues(g *G.ExprGraph, scale int, nodesValues []G.Value) *up {
+	return &up{
+		g:               g,
+		upsample2DScale: scale,
+		doubleConv:      newDoubleConvFromValues(g, nodesValues[1:]),
+		filter:          G.NodeFromAny(g, nodesValues[0]),
 	}
 }
 
@@ -151,6 +212,26 @@ func newDoubleConv(g *G.ExprGraph, dt tensor.Dtype, inputChannels, midChannels, 
 			scale:    G.NewTensor(g, dt, 4, G.WithShape(1, outputChannels, 1, 1), G.WithName(fmt.Sprintf("%s_doubleConv_batchNorm2_scale", label)), G.WithInit(G.Ones())),  // 每个通道一组数据 scale 初始化为1
 			bias:     G.NewTensor(g, dt, 4, G.WithShape(1, outputChannels, 1, 1), G.WithName(fmt.Sprintf("%s_doubleConv_batchNorm2_bias", label)), G.WithInit(G.Zeroes())), // 每个通道一组数据 bias初始化为0
 			momentum: 0.1,                                                                                                                                                  //对小数据集或动态数据：用较小的 momentum（如 0.1）;对大数据集或稳定数据：用较大的 momentum（如 0.9）
+			epsilon:  1e-5,
+		},
+	}
+}
+
+func newDoubleConvFromValues(g *G.ExprGraph, nodesValues []G.Value) *doubleConv {
+
+	return &doubleConv{
+		conv1: G.NodeFromAny(g, nodesValues[0]), // output_channels，input_channels=
+		conv2: G.NodeFromAny(g, nodesValues[1]),
+		batchNorm1: &batchNorm{
+			scale:    G.NodeFromAny(g, nodesValues[2]), // 每个通道一组数据 scale 初始化为1
+			bias:     G.NodeFromAny(g, nodesValues[3]), // 每个通道一组数据 bias初始化为0
+			momentum: 0.1,
+			epsilon:  1e-5,
+		},
+		batchNorm2: &batchNorm{
+			scale:    G.NodeFromAny(g, nodesValues[4]), // 每个通道一组数据 scale 初始化为1
+			bias:     G.NodeFromAny(g, nodesValues[5]), // 每个通道一组数据 bias初始化为0
+			momentum: 0.1,                              //对小数据集或动态数据：用较小的 momentum（如 0.1）;对大数据集或稳定数据：用较大的 momentum（如 0.9）
 			epsilon:  1e-5,
 		},
 	}

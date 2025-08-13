@@ -88,3 +88,8 @@ func TestCreateImage(t *testing.T) {
 	defer f2.Close()
 	png.Encode(f2, imgMask)
 }
+
+func TestArray(t *testing.T) {
+	r := []int{1, 2, 3, 4, 5, 6}
+	t.Log(r[0:4])
+}
