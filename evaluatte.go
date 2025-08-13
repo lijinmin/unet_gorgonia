@@ -31,7 +31,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 	}
 
 	outMax := G.Must(G.Reshape(G.Must(G.Max(out, 1)), tensor.Shape{bs, 1, int(1280/scale + 1), int(1918/scale + 1)}))
-	preMask := G.Must(G.Gte(out, G.Must(G.Concat(1, outMax, outMax)), true))
+	preMask := G.Must(G.Lt(out, G.Must(G.Concat(1, outMax, outMax)), true)) // 输出值最大的地方取1，其余取0
 
 	var preMaskVal G.Value
 	G.Read(preMask, &preMaskVal)
@@ -121,11 +121,11 @@ func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
 	defer f.Close()
 	png.Encode(f, oriImg)
 
-	f2, _ := os.Create(fmt.Sprintf("./evaluation/mask%d.png", index))
+	f2, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d.png", index))
 	defer f2.Close()
 	png.Encode(f2, imgMask)
 
-	f3, _ := os.Create(fmt.Sprintf("./evaluation/pre_mask%d.png", index))
+	f3, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d_pre%d.png", index))
 	defer f3.Close()
 	png.Encode(f3, imgPreMask)
 }

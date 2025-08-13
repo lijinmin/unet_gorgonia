@@ -423,7 +423,7 @@ func TestLeakyRelu(t *testing.T) {
 }
 func TestGte(t *testing.T) {
 	g := G.NewGraph()
-	xData := []float64{1, 2, 45, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 23, 12, 7, 8, 9, 10, 11, 12}
+	xData := []float64{16, 21, 45, 34, 5, 56, 7, 23, 76, 36, 45, 12, 1, 18, 87, 23, 23, 12, 56, 78, 66, 34, 98, 90}
 	xVal := tensor.New(tensor.WithShape(1, 2, 3, 4), tensor.WithBacking(xData)) //
 	//t.Log(xVal)
 	x := G.NewTensor(g, tensor.Float64, 4, G.WithValue(xVal), G.WithName("x"))
@@ -431,7 +431,7 @@ func TestGte(t *testing.T) {
 	zz := G.Must(G.Reshape(G.Must(G.Max(x, 1)), tensor.Shape{1, 1, 3, 4}))
 	dd := G.Must(G.Concat(1, zz, zz))
 
-	y1out := G.Must(G.Gte(x, dd, true)) //
+	y1out := G.Must(G.Lt(x, dd, true)) //
 	vm := G.NewTapeMachine(g)
 
 	defer vm.Close()
