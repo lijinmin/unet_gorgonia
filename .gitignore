@@ -8,3 +8,4 @@ test.txt
 image*.png
 mask*.png
 evaluation/*
+evalSet.json

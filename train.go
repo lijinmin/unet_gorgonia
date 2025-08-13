@@ -71,7 +71,8 @@ func train(epochs int, n_channels, n_classes int, bilinear bool, bs int) {
 	defer vm.Close()
 
 	totalSet := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", scale)
-	trainSet, _ := utils.RandomSplit(*totalSet, 0.1)
+	trainSet, evalSet := utils.RandomSplit(*totalSet, 0.1)
+	evalSet.SavetoFile("evalSet.json")
 
 	batches := len(trainSet.IDs) / bs
 	log.Debugf("Batches %d", batches)

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"github.com/ngaut/log"
 	"gorgonia.org/tensor"
 	"image"
@@ -16,12 +17,12 @@ import (
 
 type BasicDataset struct {
 	IDs         []string
-	imagesDir   string
-	maskDir     string
+	ImagesDir   string
+	MaskDir     string
 	Scale       int
-	maskSuffix  string
-	imageSiffix string
-	maskValues  []string
+	MaskSuffix  string
+	ImageSiffix string
+	MaskValues  []string
 }
 
 func NewDataset(imagesDir, maskDir, maskSuffix string, scale int) *BasicDataset {
@@ -50,12 +51,12 @@ func NewDataset(imagesDir, maskDir, maskSuffix string, scale int) *BasicDataset 
 		return nil
 	})
 	return &BasicDataset{
-		imagesDir:   imagesDir,
-		maskDir:     maskDir,
-		maskSuffix:  maskSuffix,
+		ImagesDir:   imagesDir,
+		MaskDir:     maskDir,
+		MaskSuffix:  maskSuffix,
 		Scale:       scale,
 		IDs:         ids,
-		imageSiffix: imageSiffix,
+		ImageSiffix: imageSiffix,
 	}
 }
 
@@ -76,7 +77,7 @@ func (data *BasicDataset) Init() {
 func (data *BasicDataset) uniqueMaskValues() {
 
 	for _, id := range data.IDs {
-		_ = filepath.Join(data.maskDir, id+data.maskSuffix)
+		_ = filepath.Join(data.MaskDir, id+data.MaskSuffix)
 	}
 
 }
@@ -146,8 +147,8 @@ func (data *BasicDataset) preProcess(img image.Image, label string) (val tensor.
 }
 func (data *BasicDataset) getitem(id string) (imageTensor tensor.Tensor, maskTensor tensor.Tensor) {
 	var err error
-	imageFile := path.Join(data.imagesDir, id+data.imageSiffix)
-	maskFile := path.Join(data.maskDir, id+data.maskSuffix)
+	imageFile := path.Join(data.ImagesDir, id+data.ImageSiffix)
+	maskFile := path.Join(data.MaskDir, id+data.MaskSuffix)
 	img, err := loadImage(imageFile)
 	if err != nil {
 		log.Fatal(err)
@@ -160,4 +161,32 @@ func (data *BasicDataset) getitem(id string) (imageTensor tensor.Tensor, maskTen
 	}
 	maskTensor = data.preProcess(img, "mask")
 	return
+}
+
+func (data *BasicDataset) SavetoFile(fileName string) {
+	f, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	b, err := json.Marshal(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	f.Write(b)
+
+}
+func LoadFromFile(filename string) *BasicDataset {
+	data := &BasicDataset{}
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(b, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return data
+
 }

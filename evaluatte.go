@@ -44,8 +44,9 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 	vm := G.NewTapeMachine(g, G.WithPrecompiled(prog, locMap), G.BindDualValues(n.Learnables()...))
 	defer vm.Close()
 
-	totalSet := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", scale)
-	_, evalSet := utils.RandomSplit(*totalSet, 0.1)
+	//totalSet := utils.NewDataset("./data/imgs", "./data/masks", "_mask.gif", scale)
+	//_, evalSet := utils.RandomSplit(*totalSet, 0.1)
+	evalSet := utils.LoadFromFile("evalSet.json")
 
 	batches := len(evalSet.IDs) / bs
 	log.Debugf("Batches %d", batches)
@@ -121,11 +122,11 @@ func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
 	defer f.Close()
 	png.Encode(f, oriImg)
 
-	f2, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d.png", index))
+	f2, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d.png", index, index))
 	defer f2.Close()
 	png.Encode(f2, imgMask)
 
-	f3, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d_pre%d.png", index))
+	f3, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d_pre%d.png", index, index, index))
 	defer f3.Close()
 	png.Encode(f3, imgPreMask)
 }
