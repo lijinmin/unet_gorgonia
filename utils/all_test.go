@@ -431,11 +431,7 @@ func TestGte(t *testing.T) {
 	zz := G.Must(G.Reshape(G.Must(G.Max(x, 1)), tensor.Shape{1, 1, 3, 4}))
 	dd := G.Must(G.Concat(1, zz, zz))
 
-	y := G.Must(G.Sub(x, dd))
-
-	yout := G.Must(G.Exp(y))
-	a := G.NewConstant(1.0)
-	y1out := G.Must(G.Gte(yout, a, true)) //
+	y1out := G.Must(G.Gte(x, dd, true)) //
 	vm := G.NewTapeMachine(g)
 
 	defer vm.Close()
@@ -445,8 +441,6 @@ func TestGte(t *testing.T) {
 	t.Log(zz.Value())
 	t.Log(zz.Shape())
 	t.Log(dd.Value(), dd.Shape())
-	t.Log(y.Value())
-	t.Log(yout.Value(), yout.Shape())
 	t.Log(y1out.Value(), y1out.Shape())
 }
 
