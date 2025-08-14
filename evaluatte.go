@@ -31,8 +31,14 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 		log.Fatal(err)
 	}
 
+	mask := G.NewTensor(g, dt, 4, G.WithShape(bs, n_classes, int(1280/scale+1), int(1918/scale+1)), G.WithName("mask"))
+
 	outMax := G.Must(G.Reshape(G.Must(G.Max(out, 1)), tensor.Shape{bs, 1, int(1280/scale + 1), int(1918/scale + 1)}))
 	preMask := G.Must(G.Gte(out, G.Must(G.Concat(1, outMax, outMax)), true)) // 输出值最大的地方取1，其余取0
+
+	errors := G.Must(G.Sub(G.Must(G.Sum(mask)), G.Must(G.Sum(G.Must(G.HadamardProd(mask, preMask))))))
+	var errorsValue G.Value
+	G.Read(errors, &errorsValue)
 
 	var preMaskVal G.Value
 	G.Read(preMask, &preMaskVal)
@@ -62,6 +68,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 
 	go utils.LoadImages(evalSet, bs)
 
+	total := float64(0)
 	for b := 0; b < batches; b++ {
 		var xVal, yVal tensor.Tensor
 		a := <-utils.TrainChannel
@@ -69,16 +76,19 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 		xVal = a.Inputs
 		yVal = a.Masks
 		G.Let(input, xVal)
+		G.Let(mask, yVal)
 		if err = vm.RunAll(); err != nil {
 			log.Fatalf("Failed at epoch  %d, batch %d. Error: %v", 1, b, err)
 		}
 		saveImgs(xVal, yVal, preMaskVal, b)
 		vm.Reset()
 		bar.Increment()
-
+		log.Debug(errorsValue.Data())
 		//break
+		total += errorsValue.Data().(float64)
 
 	}
+	log.Debug(total / float64(len(evalSet.IDs)))
 }
 
 func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {

@@ -432,6 +432,7 @@ func TestGte(t *testing.T) {
 	dd := G.Must(G.Concat(1, zz, zz))
 
 	y1out := G.Must(G.Lt(x, dd, true)) //
+	y2out := G.Must(G.Gte(x, dd, true))
 	vm := G.NewTapeMachine(g)
 
 	defer vm.Close()
@@ -442,6 +443,7 @@ func TestGte(t *testing.T) {
 	t.Log(zz.Shape())
 	t.Log(dd.Value(), dd.Shape())
 	t.Log(y1out.Value(), y1out.Shape())
+	t.Log(y2out.Value())
 }
 
 func TestGrad(t *testing.T) {

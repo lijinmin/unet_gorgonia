@@ -113,6 +113,8 @@ func RandomSplit(dataSet BasicDataset, valPercent float64) (trainSet *BasicDatas
 		ImageSiffix: dataSet.ImageSiffix,
 	}
 
+	Shuffle(dataSet.IDs) // 对原始ID顺序先打乱
+
 	valSetLenght := int(float64(len(dataSet.IDs)) * valPercent)
 	valIds := []string{}
 	trainIds := []string{}
