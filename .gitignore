@@ -7,6 +7,6 @@ unet_gorgonia.bin
 test.txt
 image*.png
 mask*.png
-evaluation/*
+evaluation*/*
 evalSet.json
 nohup.out

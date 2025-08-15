@@ -130,7 +130,7 @@ func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int, errorsValue G
 	}
 
 	category := int(errorsValue.Data().(float64) / 100)
-	dirPath := fmt.Sprintf("./evaluation/%d", category)
+	dirPath := fmt.Sprintf("./evaluation1/%d", category)
 	if _, err := os.Stat(dirPath); err != nil && os.IsNotExist(err) {
 		err = os.Mkdir(dirPath, 0777)
 		if err != nil {
