@@ -80,7 +80,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 		if err = vm.RunAll(); err != nil {
 			log.Fatalf("Failed at epoch  %d, batch %d. Error: %v", 1, b, err)
 		}
-		saveImgs(xVal, yVal, preMaskVal, b)
+		saveImgs(xVal, yVal, preMaskVal, b, errorsValue)
 		vm.Reset()
 		bar.Increment()
 		log.Debug(errorsValue.Data())
@@ -91,7 +91,7 @@ func evaluate(n_channels, n_classes int, bs int, filename string) {
 	log.Debug(total / float64(len(evalSet.IDs)))
 }
 
-func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
+func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int, errorsValue G.Value) {
 	//log.Debug(mask.Shape(), preMask.Shape())
 	//log.Debug(preMask.Data())
 	data := img.Data().([]float64)
@@ -129,15 +129,24 @@ func saveImgs(img, mask tensor.Tensor, preMask G.Value, index int) {
 		}
 	}
 
-	f, _ := os.Create(fmt.Sprintf("./evaluation/image%d.png", index))
+	category := int(errorsValue.Data().(float64) / 100)
+	dirPath := fmt.Sprintf("./evaluation/%d", category)
+	if _, err := os.Stat(dirPath); err != nil && os.IsNotExist(err) {
+		err = os.Mkdir(dirPath, 0777)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	f, _ := os.Create(fmt.Sprintf("%s/image%d.png", dirPath, index))
 	defer f.Close()
 	png.Encode(f, oriImg)
 
-	f2, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d.png", index, index))
+	f2, _ := os.Create(fmt.Sprintf("%s/image%d_mask%d.png", dirPath, index, index))
 	defer f2.Close()
 	png.Encode(f2, imgMask)
 
-	f3, _ := os.Create(fmt.Sprintf("./evaluation/image%d_mask%d_pre%d.png", index, index, index))
+	f3, _ := os.Create(fmt.Sprintf("%s/image%d_mask%d_pre%d.png", dirPath, index, index, index))
 	defer f3.Close()
 	png.Encode(f3, imgPreMask)
 }

@@ -480,6 +480,7 @@ func TestShuffle(t *testing.T) {
 	t.Log(a)
 	Shuffle(a)
 	t.Log(a)
+
 }
 
 func TestLoadImage(t *testing.T) {

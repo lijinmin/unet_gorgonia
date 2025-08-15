@@ -9,3 +9,4 @@ image*.png
 mask*.png
 evaluation/*
 evalSet.json
+nohup.out
